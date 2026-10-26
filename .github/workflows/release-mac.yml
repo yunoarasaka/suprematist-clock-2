@@ -1,0 +1,82 @@
+name: Release macOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v1.1.1)"
+        required: true
+        type: string
+      runner:
+        description: "macOS runner label"
+        required: true
+        type: choice
+        options:
+          - macos-14
+          - macos-13
+          - macos-15
+        default: macos-14
+
+permissions:
+  contents: write
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Unsigned CI builds — do not auto-discover signing identities
+  CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+jobs:
+  build-mac:
+    name: build (${{ inputs.runner }}, mac)
+    runs-on: ${{ inputs.runner }}
+    # Hosted mac runners can sit in queue a long time under capacity pressure
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build macOS (app + widget)
+        run: |
+          npm run dist:mac
+          npm run dist:mac:widget
+
+      - name: List dist outputs
+        run: |
+          ls -la dist || true
+          ls -la dist-widget || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: suprematist-clock-mac-${{ github.sha }}-${{ inputs.runner }}
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist-widget/*.dmg
+            dist-widget/*.zip
+          if-no-files-found: error
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: Suprematist Clock ${{ inputs.tag }}
+          draft: false
+          generate_release_notes: true
+          files: |
+            dist/*.dmg
+            dist/*.zip
+            dist-widget/*.dmg
+            dist-widget/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

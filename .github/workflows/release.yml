@@ -31,8 +31,7 @@ jobs:
             platform: linux
           - os: windows-latest
             platform: win
-          - os: macos-14
-            platform: mac
+          # macOS builds live in release-mac.yml (hosted runner capacity)
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
