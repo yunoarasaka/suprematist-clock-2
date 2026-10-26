@@ -31,7 +31,6 @@ jobs:
             platform: linux
           - os: windows-latest
             platform: win
-          # macOS builds live in release-mac.yml (hosted runner capacity)
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -61,12 +60,6 @@ jobs:
           npm run dist:win
           npm run dist:win:widget
 
-      - name: Build macOS (app + widget)
-        if: matrix.platform == 'mac'
-        run: |
-          npm run dist:mac
-          npm run dist:mac:widget
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -75,13 +68,9 @@ jobs:
             dist/*.AppImage
             dist/*.deb
             dist/*.exe
-            dist/*.dmg
-            dist/*.zip
             dist-widget/*.AppImage
             dist-widget/*.deb
             dist-widget/*.exe
-            dist-widget/*.dmg
-            dist-widget/*.zip
           if-no-files-found: warn
 
       - name: Resolve tag name
@@ -115,12 +104,8 @@ jobs:
             dist/*.AppImage
             dist/*.deb
             dist/*.exe
-            dist/*.dmg
-            dist/*.zip
             dist-widget/*.AppImage
             dist-widget/*.deb
             dist-widget/*.exe
-            dist-widget/*.dmg
-            dist-widget/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
