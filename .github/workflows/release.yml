@@ -16,6 +16,9 @@ on:
 permissions:
   contents: write
 
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   build:
     strategy:
@@ -38,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
 
       - name: Install dependencies
@@ -51,10 +54,14 @@ jobs:
       - name: Build Windows
         if: matrix.platform == 'win'
         run: npm run dist:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
       - name: Build macOS
         if: matrix.platform == 'mac'
         run: npm run dist:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -81,7 +88,6 @@ jobs:
           elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
             VER=$(node -p "require('./package.json').version")
             echo "name=v${VER}" >> "$GITHUB_OUTPUT"
-            # First main builds also publish a versioned Release so downloads work without a manual tag
             echo "publish=true" >> "$GITHUB_OUTPUT"
           else
             echo "name=" >> "$GITHUB_OUTPUT"

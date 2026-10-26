@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "Супрематистские аналоговые часы — веб, Electron-приложение и виджет (Win/macOS/Linux)",
   "main": "electron/main.js",
-  "author": "yunoarasaka",
+  "author": {
+    "name": "yunoarasaka",
+    "email": "yunoarasaka@users.noreply.github.com"
+  },
   "license": "MIT",
   "homepage": "https://yunoarasaka.github.io/suprematist-clock/",
   "repository": {
@@ -21,15 +24,16 @@
     "start": "electron .",
     "widget": "electron . --widget",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder",
-    "dist:linux": "electron-builder --linux",
-    "dist:win": "electron-builder --win",
-    "dist:mac": "electron-builder --mac"
+    "dist": "electron-builder --publish never",
+    "dist:linux": "electron-builder --linux --publish never",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --publish never"
   },
   "build": {
     "appId": "com.yunoarasaka.suprematist-clock",
     "productName": "Suprematist Clock",
     "copyright": "Copyright © 2026 yunoarasaka",
+    "publish": null,
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -42,7 +46,6 @@
       "electron/**/*",
       "package.json"
     ],
-    "extraResources": [],
     "linux": {
       "target": [
         "AppImage",
@@ -50,15 +53,22 @@
       ],
       "category": "Utility",
       "icon": "icons/suprematist-clock.png",
-      "artifactName": "${productName}-${version}-${os}.${ext}"
+      "maintainer": "yunoarasaka <yunoarasaka@users.noreply.github.com>",
+      "artifactName": "SuprematistClock-${version}-linux.${ext}"
     },
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
       ],
       "icon": "icons/suprematist-clock.png",
-      "artifactName": "${productName}-${version}-${os}.${ext}"
+      "artifactName": "SuprematistClock-${version}-win-${arch}.${ext}"
     },
     "mac": {
       "target": [
@@ -67,11 +77,15 @@
       ],
       "icon": "icons/suprematist-clock.png",
       "category": "public.app-category.utilities",
-      "artifactName": "${productName}-${version}-${os}.${ext}"
+      "artifactName": "SuprematistClock-${version}-mac.${ext}"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "SuprematistClock-${version}-win-setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "SuprematistClock-${version}-win-portable.${ext}"
     }
   },
   "devDependencies": {
