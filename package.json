@@ -1,0 +1,81 @@
+{
+  "name": "suprematist-clock",
+  "version": "1.0.0",
+  "description": "Супрематистские аналоговые часы — веб, Electron-приложение и виджет (Win/macOS/Linux)",
+  "main": "electron/main.js",
+  "author": "yunoarasaka",
+  "license": "MIT",
+  "homepage": "https://yunoarasaka.github.io/suprematist-clock/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yunoarasaka/suprematist-clock.git"
+  },
+  "keywords": [
+    "clock",
+    "suprematism",
+    "malevich",
+    "electron",
+    "widget"
+  ],
+  "scripts": {
+    "start": "electron .",
+    "widget": "electron . --widget",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:linux": "electron-builder --linux",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.yunoarasaka.suprematist-clock",
+    "productName": "Suprematist Clock",
+    "copyright": "Copyright © 2026 yunoarasaka",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "index.html",
+      "css/**/*",
+      "js/**/*",
+      "icons/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "icon": "icons/suprematist-clock.png",
+      "artifactName": "${productName}-${version}-${os}.${ext}"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "icons/suprematist-clock.png",
+      "artifactName": "${productName}-${version}-${os}.${ext}"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "icons/suprematist-clock.png",
+      "category": "public.app-category.utilities",
+      "artifactName": "${productName}-${version}-${os}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  }
+}

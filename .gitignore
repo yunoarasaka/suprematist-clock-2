@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.deps/
+
+# Build / packaging
+dist/
+out/
+release/
+*.AppImage
+*.dmg
+*.exe
+*.blockmap
+*.snap
+
+# Logs & caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.cache/
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*~
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+token.json
+
+# Local widget config (user machine)
+# (project never commits home configs)
+
+# Electron builder
+.electron-builder*

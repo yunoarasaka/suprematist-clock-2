@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Супрематические аналоговые часы" />
+  <title>Чёрный квадрат — часы</title>
+  <link rel="stylesheet" href="css/clock.css?v=6" />
+  <script>
+    /* Early class so first paint matches widget chrome (also set from GTK). */
+    if (/(?:^|[?&])widget=1(?:&|$)/.test(location.search)) {
+      document.documentElement.classList.add("widget");
+    }
+  </script>
+</head>
+<body>
+  <main class="stage" aria-label="Супрематические часы">
+    <!-- Field of planes — Malevich geometry -->
+    <div class="field" aria-hidden="true">
+      <div class="plane plane-white-slab"></div>
+      <div class="plane plane-red-banner"></div>
+      <div class="plane plane-yellow-beam"></div>
+      <div class="plane plane-blue-tower"></div>
+      <div class="plane plane-white-disk"></div>
+      <div class="plane plane-hairline"></div>
+      <div class="plane plane-red-chip"></div>
+      <div class="plane plane-yellow-chip"></div>
+    </div>
+
+    <section class="clock-wrap">
+      <svg
+        class="clock"
+        viewBox="0 0 480 480"
+        role="img"
+        aria-labelledby="clock-title"
+      >
+        <title id="clock-title">Аналоговые часы</title>
+
+        <!-- Asymmetric composition behind / through the face (static décor only) -->
+        <rect class="comp-yellow" x="340" y="56" width="110" height="22" transform="rotate(8 340 56)" />
+        <circle class="comp-white-ring" cx="400" cy="360" r="48" />
+
+        <!-- Clock face disk -->
+        <circle class="face" cx="240" cy="240" r="168" />
+
+        <!-- Black square overlapping the face (Malevich motif) -->
+        <rect class="black-square" x="72" y="64" width="118" height="118" />
+
+        <!-- Face accents (static; hour/minute indicators are orbital groups below) -->
+        <rect class="accent-blue" x="78" y="292" width="64" height="14" />
+        <circle class="accent-yellow" cx="136" cy="148" r="10" />
+
+        <g class="marks" id="marks"></g>
+
+        <!-- Orbital hour/minute only — second flies on .stage overlay -->
+        <g class="hands">
+          <!-- Hour: blue vertical bar, orbit around dial center (12h = full circle) -->
+          <g id="hour-indicator" class="orbital-group">
+            <rect class="ind-hour" x="212" y="12" width="56" height="100" />
+          </g>
+          <!-- Minute: red square, center on marks radius OUTER≈168 -->
+          <g id="minute-indicator" class="orbital-group">
+            <rect class="ind-minute" x="219" y="51" width="42" height="42" />
+          </g>
+          <circle class="hub-outer" cx="240" cy="240" r="14" />
+          <circle class="hub-mid" cx="240" cy="240" r="8" />
+          <circle class="hub-inner" cx="240" cy="240" r="4" />
+        </g>
+      </svg>
+
+      <p class="brand" lang="ru">время · плоскость</p>
+    </section>
+
+    <!-- Flying second hand: full-viewport layer, pivot = translate point -->
+    <div class="flying-second" id="flying-second" aria-hidden="true">
+      <svg
+        class="flying-second-svg"
+        viewBox="-20 -200 40 250"
+        width="40"
+        height="250"
+        overflow="visible"
+      >
+        <!-- rotate around local (0,0) only — no CSS transform-origin -->
+        <g id="second-hand">
+          <rect class="hand-second" x="-2" y="-184" width="4" height="198" />
+          <polygon class="hand-second-tip" points="0,-192 -5,-178 5,-178" />
+          <rect class="hand-second-tail" x="-4" y="8" width="8" height="36" />
+        </g>
+      </svg>
+    </div>
+  </main>
+
+  <script src="js/clock.js?v=6"></script>
+</body>
+</html>

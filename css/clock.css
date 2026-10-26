@@ -1,0 +1,325 @@
+/* Suprematism — Malevich palette: black / red / yellow / white / deep blue */
+:root {
+  --black: #050505;
+  --ink: #0c0c0c;
+  --white: #f5f2ea;
+  --paper: #ebe4d4;
+  --red: #c0152a;
+  --yellow: #e0b83a;
+  --blue: #15245e;
+  --line: #d8d2c4;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--black);
+  color: var(--white);
+  /* Expressive condensed stack — not Inter/Roboto/Arial system default alone */
+  font-family: "Ubuntu Condensed", "DejaVu Sans Condensed", "Liberation Sans Narrow",
+    "Arial Narrow", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 20%, #121212 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 15% 85%, #0d1020 0%, transparent 50%),
+    var(--black);
+}
+
+/* ——— Background planes ——— */
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.plane {
+  position: absolute;
+}
+
+.plane-white-slab {
+  width: min(26vw, 210px);
+  aspect-ratio: 1;
+  background: var(--paper);
+  top: 6%;
+  left: 5%;
+  animation: drift-a 32s ease-in-out infinite alternate;
+}
+
+.plane-red-banner {
+  width: min(36vw, 300px);
+  height: min(16vw, 128px);
+  background: var(--red);
+  top: 10%;
+  right: 5%;
+  animation: drift-b 36s ease-in-out infinite alternate;
+}
+
+.plane-yellow-beam {
+  width: min(48vw, 420px);
+  height: 16px;
+  background: var(--yellow);
+  bottom: 16%;
+  left: 8%;
+  transform: rotate(3.5deg);
+  transform-origin: left center;
+  animation: breathe 10s ease-in-out infinite;
+}
+
+.plane-blue-tower {
+  width: min(18vw, 150px);
+  height: min(34vw, 280px);
+  background: var(--blue);
+  bottom: 4%;
+  right: 9%;
+  animation: drift-a 42s ease-in-out infinite alternate-reverse;
+}
+
+.plane-white-disk {
+  width: min(14vw, 120px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--white);
+  top: 48%;
+  left: 3%;
+  animation: breathe 12s ease-in-out infinite 1.4s;
+}
+
+.plane-hairline {
+  width: 2px;
+  height: min(44vh, 360px);
+  background: var(--line);
+  top: 16%;
+  right: 26%;
+  opacity: 0.7;
+  animation: drift-a 24s ease-in-out infinite alternate;
+}
+
+.plane-red-chip {
+  width: 56px;
+  height: 56px;
+  background: var(--red);
+  bottom: 26%;
+  left: 26%;
+  animation: drift-a 20s ease-in-out infinite alternate;
+}
+
+.plane-yellow-chip {
+  width: 28px;
+  height: 72px;
+  background: var(--yellow);
+  top: 28%;
+  left: 22%;
+  transform: rotate(-18deg);
+  animation: drift-c 28s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes drift-a {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(18px, -12px); }
+}
+
+@keyframes drift-b {
+  from { transform: translate(0, 0) rotate(-7deg); }
+  to   { transform: translate(-14px, 10px) rotate(-4deg); }
+}
+
+@keyframes drift-c {
+  from { transform: translate(0, 0) rotate(-18deg); }
+  to   { transform: translate(8px, -6px) rotate(-14deg); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.68; }
+  50%      { opacity: 1; }
+}
+
+/* ——— Clock composition ——— */
+.clock-wrap {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.clock {
+  width: min(78vmin, 560px);
+  height: min(78vmin, 560px);
+  display: block;
+  overflow: visible;
+}
+
+.face {
+  fill: var(--paper);
+  stroke: none;
+}
+
+.black-square {
+  fill: var(--ink);
+}
+
+.comp-yellow {
+  fill: var(--yellow);
+}
+
+.comp-white-ring {
+  fill: none;
+  stroke: var(--white);
+  stroke-width: 10;
+  opacity: 0.85;
+}
+
+.accent-blue {
+  fill: var(--blue);
+}
+
+.accent-yellow {
+  fill: var(--yellow);
+}
+
+.mark {
+  stroke: var(--ink);
+  stroke-linecap: square;
+}
+
+.mark-major {
+  stroke-width: 5;
+}
+
+.mark-cardinal {
+  stroke-width: 7;
+  stroke: var(--ink);
+}
+
+.mark-minor {
+  stroke-width: 2;
+  opacity: 0.4;
+}
+
+.orbital-group {
+  /* Rotation only via SVG transform="rotate(deg cx cy)".
+     CSS transform-origin makes Chrome promote the attribute to a CSS matrix
+     with a wrong translation — elements leave the dial. */
+}
+
+/* Orbital hour: blue vertical bar (former static comp-blue role) */
+.ind-hour {
+  fill: var(--blue);
+}
+
+/* Orbital minute: red square on marks radius (former static accent-red) */
+.ind-minute {
+  fill: var(--red);
+}
+
+/* Flying second — stage overlay; position via CSS translate, spin via SVG rotate */
+.flying-second {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 5;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.flying-second-svg {
+  display: block;
+  overflow: visible;
+  /* Align viewBox pivot (0,0) with the translate point */
+  margin-left: -20px;
+  margin-top: -200px;
+}
+
+.hand-second {
+  fill: var(--red);
+}
+
+.hand-second-tip {
+  fill: var(--red);
+}
+
+.hand-second-tail {
+  fill: var(--red);
+}
+
+.hub-outer {
+  fill: var(--ink);
+}
+
+.hub-mid {
+  fill: var(--red);
+}
+
+.hub-inner {
+  fill: var(--yellow);
+}
+
+.brand {
+  font-size: clamp(0.72rem, 1.5vw, 0.9rem);
+  letter-spacing: 0.32em;
+  text-transform: lowercase;
+  color: var(--white);
+  opacity: 0.5;
+  font-weight: 400;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plane {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .brand {
+    letter-spacing: 0.2em;
+  }
+}
+
+/* ——— Desktop widget (frameless GTK / Electron, ?widget=1) ——— */
+html.widget,
+html.widget body {
+  background: var(--black);
+  cursor: grab;
+  /* Electron frameless: drag the window by the body */
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+html.widget body:active {
+  cursor: grabbing;
+}
+
+html.widget .stage {
+  /* Slightly tighter field so the dial reads at ~440×500 */
+  min-height: 100%;
+}
+
+html.widget .brand {
+  opacity: 0.4;
+  letter-spacing: 0.28em;
+}
