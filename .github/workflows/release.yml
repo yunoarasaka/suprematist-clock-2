@@ -18,6 +18,8 @@ permissions:
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Unsigned CI builds — do not auto-discover signing identities
+  CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
 jobs:
   build:
@@ -29,10 +31,11 @@ jobs:
             platform: linux
           - os: windows-latest
             platform: win
-          - os: macos-latest
+          - os: macos-14
             platform: mac
 
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -58,16 +61,12 @@ jobs:
         run: |
           npm run dist:win
           npm run dist:win:widget
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
       - name: Build macOS (app + widget)
         if: matrix.platform == 'mac'
         run: |
           npm run dist:mac
           npm run dist:mac:widget
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
