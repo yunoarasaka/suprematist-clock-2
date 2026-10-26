@@ -1,0 +1,57 @@
+appId: com.yunoarasaka.suprematist-clock-widget
+productName: Suprematist Clock Widget
+executableName: SuprematistClock-Widget
+copyright: Copyright © 2026 yunoarasaka
+publish: null
+
+directories:
+  output: dist-widget
+  buildResources: build
+
+extraMetadata:
+  name: suprematist-clock-widget
+  main: electron/main-widget.js
+
+files:
+  - index.html
+  - css/**/*
+  - js/**/*
+  - icons/**/*
+  - electron/**/*
+  - package.json
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Utility
+  icon: icons/suprematist-clock.png
+  maintainer: yunoarasaka <yunoarasaka@users.noreply.github.com>
+  artifactName: SuprematistClock-Widget-${version}-linux.${ext}
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  icon: icons/suprematist-clock.png
+  artifactName: SuprematistClock-Widget-${version}-win-${arch}.${ext}
+
+mac:
+  target:
+    - dmg
+    - zip
+  icon: icons/suprematist-clock.png
+  category: public.app-category.utilities
+  artifactName: SuprematistClock-Widget-${version}-mac.${ext}
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: SuprematistClock-Widget-${version}-win-setup.${ext}
+
+portable:
+  artifactName: SuprematistClock-Widget-${version}-win-portable.${ext}

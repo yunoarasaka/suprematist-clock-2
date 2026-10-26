@@ -1,6 +1,6 @@
 {
   "name": "suprematist-clock",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Супрематистские аналоговые часы — веб, Electron-приложение и виджет (Win/macOS/Linux)",
   "main": "electron/main.js",
   "author": {
@@ -27,7 +27,10 @@
     "dist": "electron-builder --publish never",
     "dist:linux": "electron-builder --linux --publish never",
     "dist:win": "electron-builder --win --publish never",
-    "dist:mac": "electron-builder --mac --publish never"
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:linux:widget": "electron-builder --linux --config electron-builder.widget.yml --publish never",
+    "dist:win:widget": "electron-builder --win --config electron-builder.widget.yml --publish never",
+    "dist:mac:widget": "electron-builder --mac --config electron-builder.widget.yml --publish never"
   },
   "build": {
     "appId": "com.yunoarasaka.suprematist-clock",

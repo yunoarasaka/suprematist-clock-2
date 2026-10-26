@@ -4,6 +4,7 @@ node_modules/
 
 # Build / packaging
 dist/
+dist-widget/
 out/
 release/
 *.AppImage
