@@ -46,26 +46,34 @@ npm run widget     # виджет: без рамок, поверх окон (alw
 ### 3. Скачать готовый билд (Release)
 
 1. Откройте [Releases](https://github.com/yunoarasaka/suprematist-clock/releases)
-2. Выберите файл под вашу систему:
-   - **Windows:** `.exe` (установщик или portable)
-   - **macOS:** `.dmg` или `.zip`
-   - **Linux:** `.AppImage` или `.deb`
-3. Установите / запустите. Для виджета из исходников используйте `npm run widget` (см. выше).
+2. Выберите файл под вашу систему — в каждом релизе **два набора**:
 
-Сборки делает GitHub Actions на runners Win/macOS/Linux — с одной Linux-машины `.dmg` нативно не собрать, поэтому релизы приходят из CI.
+| Имя файла | Что это |
+| --- | --- |
+| `SuprematistClock-1.x…` (без `Widget`) | Обычное **приложение** с рамкой окна |
+| `SuprematistClock-Widget-1.x…` | Готовый **виджет**: frameless, поверх окон, без панели задач |
+
+Платформы:
+- **Windows:** `*-win-setup.exe` (установщик) или `*-win-portable.exe`
+- **macOS:** `.dmg` / `.zip`
+- **Linux:** `.AppImage` / `.deb`
+
+3. Скачал → запустил → для Widget сразу безрамочное окно. Исходники: `npm run widget`.
+
+Сборки делает GitHub Actions (Win / macOS / Linux). macOS-артефакты появляются только если mac-runner в CI успешен.
 
 ### 4. Как запустить виджет
 
 | Платформа | Способ |
 | --- | --- |
-| **Win / Mac / Linux** | `npm run widget` (Electron, без рамок, alwaysOnTop / skipTaskbar) |
+| **Win / Mac / Linux** | Release-файл `SuprematistClock-Widget-*` **или** `npm run widget` |
 | **Ubuntu / GNOME** (доп.) | `./widget.sh` — нативный GTK+WebKit виджет (см. ниже) |
 
 ---
 
 ## English (short)
 
-Cross-platform Suprematist analog clock: open `index.html` / Pages, or `npm i && npm start` / `npm run widget`, or download a Release build for Windows, macOS, or Linux. Optional Linux-native GTK widget: `./widget.sh`.
+Cross-platform Suprematist analog clock: open `index.html` / Pages, or `npm i && npm start` / `npm run widget`, or download Release builds — `SuprematistClock-*` (framed app) vs `SuprematistClock-Widget-*` (frameless). Optional Linux-native GTK widget: `./widget.sh`.
 
 ---
 
@@ -96,16 +104,21 @@ chmod +x widget.sh widget.py
 
 ```bash
 npm install
-npm run dist:linux   # AppImage, deb
-npm run dist:win     # exe (нужен wine на Linux или сборка на Windows)
-npm run dist:mac     # dmg — только на macOS / в CI
+# приложение
+npm run dist:linux          # AppImage, deb → dist/
+npm run dist:win            # exe (wine на Linux или Windows)
+npm run dist:mac            # dmg — только на macOS / в CI
+# отдельный виджет (frameless по умолчанию)
+npm run dist:linux:widget   # → dist-widget/
+npm run dist:win:widget
+npm run dist:mac:widget
 ```
 
-CI: `.github/workflows/release.yml` — push tag `v*` или ручной **workflow_dispatch**.
+CI: `.github/workflows/release.yml` собирает **app и widget** на каждом OS-runner; push tag `v*` или **workflow_dispatch**.
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
 ---
@@ -114,14 +127,16 @@ git push origin v1.0.0
 
 ```
 suprematist-clock/
-  index.html              # веб-ядро (браузер / Pages)
+  index.html                      # веб-ядро (браузер / Pages)
   css/  js/  icons/
-  electron/main.js        # Electron: app + --widget
-  package.json            # electron + electron-builder
-  widget.py / widget.sh   # Linux-native GTK виджет
-  run.sh / install.sh     # Ubuntu: Chrome --app + меню
-  .github/workflows/      # релизы Win/Mac/Linux
-  LICENSE                 # MIT
+  electron/main.js                # Electron: app + --widget
+  electron/main-widget.js         # entry packaged widget (WIDGET по умолчанию)
+  electron-builder.widget.yml     # отдельная сборка виджета
+  package.json                    # electron + electron-builder
+  widget.py / widget.sh           # Linux-native GTK виджет
+  run.sh / install.sh             # Ubuntu: Chrome --app + меню
+  .github/workflows/              # релизы app+widget Win/Mac/Linux
+  LICENSE                         # MIT
 ```
 
 ## Лицензия
