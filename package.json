@@ -63,11 +63,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "icons/suprematist-clock.png",
@@ -78,9 +82,14 @@
         "dmg",
         "zip"
       ],
-      "icon": "icons/suprematist-clock.png",
+      "icon": "build/icon.icns",
       "category": "public.app-category.utilities",
-      "artifactName": "SuprematistClock-${version}-mac.${ext}"
+      "artifactName": "SuprematistClock-${version}-mac.${ext}",
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "nsis": {
       "oneClick": false,
@@ -89,7 +98,8 @@
     },
     "portable": {
       "artifactName": "SuprematistClock-${version}-win-portable.${ext}"
-    }
+    },
+    "executableName": "SuprematistClock"
   },
   "devDependencies": {
     "electron": "^33.2.0",
