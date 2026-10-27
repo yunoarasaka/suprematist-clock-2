@@ -10,6 +10,6 @@ Path=
 Icon=suprematist-clock
 Terminal=false
 Categories=Utility;
-StartupWMClass=SuprematistClock
+StartupWMClass=suprematist-clock
 Keywords=clock;часы;suprematism;супрематизм;malevich;малевич;
 # После ./install.sh пути Path/Exec подставляются автоматически.

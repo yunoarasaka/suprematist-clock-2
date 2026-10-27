@@ -1,7 +1,8 @@
 {
   "name": "suprematist-clock",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Супрематистские аналоговые часы — веб, Electron-приложение и виджет (Win/macOS/Linux)",
+  "desktopName": "suprematist-clock",
   "main": "electron/main.js",
   "author": {
     "name": "yunoarasaka",
@@ -58,9 +59,11 @@
       "icon": "icons/suprematist-clock.png",
       "maintainer": "yunoarasaka <yunoarasaka@users.noreply.github.com>",
       "artifactName": "SuprematistClock-${version}-linux.${ext}",
+      "syncDesktopName": true,
       "desktop": {
         "entry": {
-          "Comment": "On Ubuntu 24+/26 prefer the .deb (AppArmor userns). AppImage may need --no-sandbox."
+          "Comment": "On Ubuntu 24+/26 prefer the .deb (AppArmor userns). AppImage may need --no-sandbox.",
+          "StartupWMClass": "suprematist-clock"
         }
       }
     },
