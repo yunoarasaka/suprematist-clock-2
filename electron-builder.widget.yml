@@ -28,6 +28,9 @@ linux:
   icon: icons/suprematist-clock.png
   maintainer: yunoarasaka <yunoarasaka@users.noreply.github.com>
   artifactName: SuprematistClock-Widget-${version}-linux.${ext}
+  desktop:
+    entry:
+      Comment: "On Ubuntu 24+/26 prefer the .deb (AppArmor userns). AppImage may need --no-sandbox."
 
 win:
   target:
@@ -52,6 +55,9 @@ mac:
   gatekeeperAssess: false
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
+
+deb:
+  appArmorProfile: build/apparmor-profile.tpl
 
 nsis:
   oneClick: false

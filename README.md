@@ -56,7 +56,14 @@ npm run widget     # виджет: без рамок, поверх окон (alw
 Платформы:
 - **Windows:** `*-win-setup.exe` (установщик) или `*-win-portable.exe`
 - **macOS:** `SuprematistClock-*-mac.dmg` / `.zip` и `SuprematistClock-Widget-*-mac.dmg` / `.zip`
-- **Linux:** `.AppImage` / `.deb`
+- **Linux:** `.AppImage` / `.deb` — на **Ubuntu 24.04+ / 26** предпочтителен **`.deb`**: пакет ставит AppArmor-профиль с `userns`, и Chromium-sandbox работает без `--no-sandbox`. AppImage путь «плавает», профиль к нему не привязать автоматически — при необходимости запускайте с `--no-sandbox` (не отключайте глобально `apparmor_restrict_unprivileged_userns`).
+
+```bash
+# Ubuntu: приложение + виджет из Releases
+sudo apt install ./SuprematistClock-*-linux.deb ./SuprematistClock-Widget-*-linux.deb
+SuprematistClock
+SuprematistClock-Widget
+```
 
 3. Скачал → запустил → для Widget сразу безрамочное окно. Исходники: `npm run widget`.
 
@@ -73,7 +80,7 @@ npm run widget     # виджет: без рамок, поверх окон (alw
 
 ## English (short)
 
-Cross-platform Suprematist analog clock. Download **Windows, Linux, and macOS** app + Widget from [Releases](https://github.com/yunoarasaka/suprematist-clock/releases) (`SuprematistClock-*` framed app vs `SuprematistClock-Widget-*` frameless; Mac: `.dmg` / `.zip`). Or use [GitHub Pages](https://yunoarasaka.github.io/suprematist-clock/) / `npm i && npm start` / `npm run widget`. Optional Linux-native GTK widget: `./widget.sh`.
+Cross-platform Suprematist analog clock. Download **Windows, Linux, and macOS** app + Widget from [Releases](https://github.com/yunoarasaka/suprematist-clock/releases) (`SuprematistClock-*` framed app vs `SuprematistClock-Widget-*` frameless; Mac: `.dmg` / `.zip`). On **Ubuntu 24+/26**, prefer the **`.deb`** (ships an AppArmor `userns` profile so the sandbox works without `--no-sandbox`); AppImage may still need `--no-sandbox`. Or use [GitHub Pages](https://yunoarasaka.github.io/suprematist-clock/) / `npm i && npm start` / `npm run widget`. Optional Linux-native GTK widget: `./widget.sh`.
 
 ---
 
@@ -117,9 +124,13 @@ npm run dist:mac:widget
 CI: `.github/workflows/release.yml` — Linux/Windows (app + widget); `.github/workflows/release-mac.yml` — macOS. Push tag `v*` / **workflow_dispatch** для Win+Linux; для Mac — **Release macOS** workflow с указанием тега.
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.1.2
+git push origin v1.1.2
 ```
+
+### Ubuntu 24+ / AppArmor (electron-builder ≥26)
+
+`.deb` сборки (app + widget) включают профиль AppArmor (`build/apparmor-profile.tpl` → `/opt/…/resources/apparmor-profile`, установка через `after-install` в `/etc/apparmor.d/<executable>` с правом `userns`). Это снимает FATAL sandbox на системах с `apparmor_restrict_unprivileged_userns=1` без отключения sandbox в коде и без глобального sysctl.
 
 ---
 
