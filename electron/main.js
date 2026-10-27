@@ -1,7 +1,8 @@
 "use strict";
 
-const { app, BrowserWindow, Menu, shell } = require("electron");
+const { app, BrowserWindow, Menu, shell, nativeImage } = require("electron");
 const path = require("path");
+const fs = require("fs");
 
 const ROOT = path.join(__dirname, "..");
 const INDEX = path.join(ROOT, "index.html");
@@ -11,10 +12,28 @@ const isWidget =
   process.argv.includes("--widget") ||
   process.env.SUPREMATIST_WIDGET === "1";
 
+// Electron/Chromium WM_CLASS on Linux comes from app name (= package.json name).
+// Keep it stable and distinct for app vs widget so .desktop StartupWMClass can match.
+const LINUX_APP_NAME = isWidget
+  ? "suprematist-clock-widget"
+  : "suprematist-clock";
+if (process.platform === "linux") {
+  app.setName(LINUX_APP_NAME);
+}
+
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
 
+function resolveIcon() {
+  if (fs.existsSync(ICON)) {
+    return nativeImage.createFromPath(ICON);
+  }
+  return undefined;
+}
+
 function createWindow() {
+  const iconImage = resolveIcon();
+
   /** @type {Electron.BrowserWindowConstructorOptions} */
   const opts = {
     width: isWidget ? 440 : 1280,
@@ -22,7 +41,6 @@ function createWindow() {
     minWidth: isWidget ? 280 : 640,
     minHeight: isWidget ? 320 : 480,
     backgroundColor: "#0a0a12",
-    icon: ICON,
     show: false,
     autoHideMenuBar: true,
     title: isWidget ? "Супрематистские часы (виджет)" : "Супрематистские часы",
@@ -32,6 +50,10 @@ function createWindow() {
       sandbox: true,
     },
   };
+
+  if (iconImage && !iconImage.isEmpty()) {
+    opts.icon = iconImage;
+  }
 
   if (isWidget) {
     opts.frame = false;
@@ -51,7 +73,12 @@ function createWindow() {
   mainWindow.loadURL(fileUrl);
 
   mainWindow.once("ready-to-show", () => {
-    if (mainWindow) mainWindow.show();
+    if (mainWindow) {
+      if (process.platform === "linux" && iconImage && !iconImage.isEmpty()) {
+        mainWindow.setIcon(iconImage);
+      }
+      mainWindow.show();
+    }
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

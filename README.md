@@ -56,7 +56,7 @@ npm run widget     # виджет: без рамок, поверх окон (alw
 Платформы:
 - **Windows:** `*-win-setup.exe` (установщик) или `*-win-portable.exe`
 - **macOS:** `SuprematistClock-*-mac.dmg` / `.zip` и `SuprematistClock-Widget-*-mac.dmg` / `.zip`
-- **Linux:** `.AppImage` / `.deb` — на **Ubuntu 24.04+ / 26** предпочтителен **`.deb`**: пакет ставит AppArmor-профиль с `userns`, и Chromium-sandbox работает без `--no-sandbox`. AppImage путь «плавает», профиль к нему не привязать автоматически — при необходимости запускайте с `--no-sandbox` (не отключайте глобально `apparmor_restrict_unprivileged_userns`).
+- **Linux:** `.AppImage` / `.deb` — на **Ubuntu 24.04+ / 26** предпочтителен **`.deb`**: пакет ставит AppArmor-профиль с `userns`, и Chromium-sandbox работает без `--no-sandbox`. AppImage путь «плавает», профиль к нему не привязать автоматически — при необходимости запускайте с `--no-sandbox` (не отключайте глобально `apparmor_restrict_unprivileged_userns`). С **v1.1.3** в `.desktop` выставлен верный `StartupWMClass` (совпадает с WM_CLASS Electron), чтобы в доке GNOME была иконка часов, а не шестерёнка.
 
 ```bash
 # Ubuntu: приложение + виджет из Releases
