@@ -53,11 +53,14 @@ DEFAULTS = {
 }
 
 
-def load_config() -> dict:
+def load_config(framed: bool = False) -> dict:
     cfg = dict(DEFAULTS)
+    if framed:
+        cfg.update({"x": 160, "y": 100, "w": 960, "h": 720, "layer": "normal"})
+    path = CONFIG_DIR / ("app.json" if framed else "widget.json")
     try:
-        if CONFIG_PATH.is_file():
-            data = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        if path.is_file():
+            data = json.loads(path.read_text(encoding="utf-8"))
             if isinstance(data, dict):
                 cfg.update({k: data[k] for k in DEFAULTS if k in data})
     except (OSError, json.JSONDecodeError, TypeError):
@@ -65,10 +68,11 @@ def load_config() -> dict:
     return cfg
 
 
-def save_config(cfg: dict) -> None:
+def save_config(cfg: dict, framed: bool = False) -> None:
+    path = CONFIG_DIR / ("app.json" if framed else "widget.json")
     try:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        CONFIG_PATH.write_text(
+        path.write_text(
             json.dumps(cfg, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
@@ -79,8 +83,8 @@ def save_config(cfg: dict) -> None:
 class ClockWidget(Gtk.Window):
     def __init__(self, framed: bool = False) -> None:
         super().__init__(type=Gtk.WindowType.TOPLEVEL)
-        self.cfg = load_config()
         self._framed = framed
+        self.cfg = load_config(framed=framed)
         self._drag_enabled = not bool(self.cfg.get("locked"))
 
         # Clear Adwaita's solid window background so 32-bit RGBA transparency works
@@ -187,7 +191,7 @@ class ClockWidget(Gtk.Window):
                 for k in ("theme", "secondMode", "bgMode", "captionMode"):
                     if k in data:
                         self.cfg[k] = data[k]
-                save_config(self.cfg)
+                save_config(self.cfg, self._framed)
         except Exception:
             pass
 
@@ -350,7 +354,7 @@ class ClockWidget(Gtk.Window):
 
     def _set_pref(self, key: str, val: str) -> None:
         self.cfg[key] = val
-        save_config(self.cfg)
+        save_config(self.cfg, self._framed)
         self._sync_js_state()
         self._rebuild_menu()
 
@@ -363,18 +367,18 @@ class ClockWidget(Gtk.Window):
     def _toggle_lock(self, *_args) -> None:
         self._drag_enabled = not self._drag_enabled
         self.cfg["locked"] = not self._drag_enabled
-        save_config(self.cfg)
+        save_config(self.cfg, self._framed)
         self._sync_js_state()
         self._rebuild_menu()
 
     def _set_layer(self, layer: str) -> None:
         self._apply_layer(layer)
-        save_config(self.cfg)
+        save_config(self.cfg, self._framed)
         self._rebuild_menu()
 
     def _set_opacity(self, opacity: float) -> None:
         self._apply_opacity(opacity)
-        save_config(self.cfg)
+        save_config(self.cfg, self._framed)
         self._rebuild_menu()
 
     @staticmethod
@@ -497,7 +501,7 @@ class ClockWidget(Gtk.Window):
 
     def _persist(self) -> None:
         self.cfg["locked"] = not self._drag_enabled
-        save_config(self.cfg)
+        save_config(self.cfg, self._framed)
 
     def _on_delete(self, *_args) -> bool:
         self._persist()
