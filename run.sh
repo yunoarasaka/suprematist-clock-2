@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
-# Launch Suprematist Clock with true RGBA window transparency support.
-# Uses native GTK3+WebKit2 (or built Electron app) instead of Chrome --app,
-# because Chrome --app has an opaque white browser backdrop and cannot be transparent.
+# Launch Suprematist Clock 2.0 (frameless transparent desktop clock).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
-if [[ -x "${ROOT}/widget.sh" ]] && python3 -c '
+GI_CAIRO_PATH="${ROOT}/.deps/gi-cairo/usr/lib/python3/dist-packages"
+if [[ -d "${GI_CAIRO_PATH}" ]]; then
+  export PYTHONPATH="${GI_CAIRO_PATH}${PYTHONPATH:+:${PYTHONPATH}}"
+fi
+
+if command -v python3 >/dev/null 2>&1 && python3 -c '
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("WebKit2", "4.1")
 ' 2>/dev/null; then
-  exec "${ROOT}/widget.sh" --app "$@"
+  exec python3 "${ROOT}/widget.py" "$@"
 fi
 
 if [[ -x "${ROOT}/dist/linux-unpacked/SuprematistClock" ]]; then
@@ -24,4 +27,5 @@ if [[ -x "${ROOT}/node_modules/electron/dist/electron" ]]; then
 fi
 
 echo "Не найден ни GTK3+WebKit2, ни Electron." >&2
+echo "  sudo apt install python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1" >&2
 exit 1

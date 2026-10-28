@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Frameless desktop widget for Suprematist Clock (GTK3 + WebKit2).
+"""Suprematist Clock 2.0 — frameless transparent desktop clock/widget (GTK3 + WebKit2).
 
 Designed for Ubuntu GNOME. Uses X11/XWayland backend when available so
 32-bit RGBA window transparency, keep-below, skip-taskbar, and window
@@ -12,9 +12,6 @@ import os
 import sys
 from pathlib import Path
 
-# Under GNOME Wayland, native Wayland forbids window move/keep-below/skip-taskbar
-# and can paint opaque window backers. XWayland (x11) supports full 32-bit RGBA
-# transparency + desktop widget window hints.
 if os.environ.get("DISPLAY"):
     os.environ.setdefault("GDK_BACKEND", "x11")
 
@@ -31,12 +28,13 @@ gi.require_version("WebKit2", "4.1")
 
 from gi.repository import Gdk, GLib, Gtk, WebKit2  # noqa: E402
 
-APP_ID = "suprematist-clock-widget"
+APP_ID = "SuprematistClock"
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "index.html"
 ICON_PATH = ROOT / "icons" / "suprematist-clock.png"
 CONFIG_DIR = Path.home() / ".config" / "suprematist-clock"
-CONFIG_PATH = CONFIG_DIR / "widget.json"
+CONFIG_PATH = CONFIG_DIR / "config.json"
+LEGACY_WIDGET_PATH = CONFIG_DIR / "widget.json"
 
 DEFAULTS = {
     "x": 48,
@@ -45,6 +43,7 @@ DEFAULTS = {
     "h": 500,
     "locked": False,
     "layer": "below",  # below | above | normal
+    "skipTaskbar": True,
     "opacity": 1.0,
     "theme": "dark",  # dark | light | red
     "secondMode": "flight30",  # flight30 | drift | orbit
@@ -53,14 +52,12 @@ DEFAULTS = {
 }
 
 
-def load_config(framed: bool = False) -> dict:
+def load_config() -> dict:
     cfg = dict(DEFAULTS)
-    if framed:
-        cfg.update({"x": 160, "y": 100, "w": 960, "h": 720, "layer": "normal"})
-    path = CONFIG_DIR / ("app.json" if framed else "widget.json")
+    src = CONFIG_PATH if CONFIG_PATH.is_file() else LEGACY_WIDGET_PATH
     try:
-        if path.is_file():
-            data = json.loads(path.read_text(encoding="utf-8"))
+        if src.is_file():
+            data = json.loads(src.read_text(encoding="utf-8"))
             if isinstance(data, dict):
                 cfg.update({k: data[k] for k in DEFAULTS if k in data})
     except (OSError, json.JSONDecodeError, TypeError):
@@ -68,23 +65,21 @@ def load_config(framed: bool = False) -> dict:
     return cfg
 
 
-def save_config(cfg: dict, framed: bool = False) -> None:
-    path = CONFIG_DIR / ("app.json" if framed else "widget.json")
+def save_config(cfg: dict) -> None:
     try:
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        path.write_text(
+        CONFIG_PATH.write_text(
             json.dumps(cfg, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
     except OSError as exc:
-        print(f"widget: cannot save config: {exc}", file=sys.stderr)
+        print(f"clock: cannot save config: {exc}", file=sys.stderr)
 
 
-class ClockWidget(Gtk.Window):
-    def __init__(self, framed: bool = False) -> None:
+class ClockWindow(Gtk.Window):
+    def __init__(self) -> None:
         super().__init__(type=Gtk.WindowType.TOPLEVEL)
-        self._framed = framed
-        self.cfg = load_config(framed=framed)
+        self.cfg = load_config()
         self._drag_enabled = not bool(self.cfg.get("locked"))
 
         # Clear Adwaita's solid window background so 32-bit RGBA transparency works
@@ -110,14 +105,11 @@ class ClockWidget(Gtk.Window):
                 self.set_app_paintable(True)
 
         self.set_title("Супрематистские часы")
-        self.set_name("SuprematistClock" if framed else APP_ID)
+        self.set_name(APP_ID)
         self.set_decorated(False)
         self.set_resizable(True)
         self.set_accept_focus(True)
-        if not framed:
-            self.set_skip_taskbar_hint(True)
-            self.set_skip_pager_hint(True)
-            self.set_type_hint(Gdk.WindowTypeHint.UTILITY)
+        self._apply_taskbar_hint(bool(self.cfg.get("skipTaskbar", True)))
         self.set_urgency_hint(False)
         self.set_default_size(int(self.cfg["w"]), int(self.cfg["h"]))
 
@@ -173,8 +165,7 @@ class ClockWidget(Gtk.Window):
         self.view.connect("load-changed", self._on_load_changed)
         self.view.load_uri(uri)
 
-        if not self._framed:
-            self._apply_layer(str(self.cfg.get("layer") or "below"))
+        self._apply_layer(str(self.cfg.get("layer") or "below"))
         self._menu = self._build_menu()
 
         self.show_all()
@@ -191,7 +182,7 @@ class ClockWidget(Gtk.Window):
                 for k in ("theme", "secondMode", "bgMode", "captionMode"):
                     if k in data:
                         self.cfg[k] = data[k]
-                save_config(self.cfg, self._framed)
+                save_config(self.cfg)
         except Exception:
             pass
 
@@ -226,12 +217,15 @@ class ClockWidget(Gtk.Window):
             self.move(x, y)
         except Exception:
             pass
-        if not self._framed:
-            self.set_skip_taskbar_hint(True)
-            self.set_skip_pager_hint(True)
-            self._apply_layer(str(self.cfg.get("layer") or "below"))
+        self._apply_taskbar_hint(bool(self.cfg.get("skipTaskbar", True)))
+        self._apply_layer(str(self.cfg.get("layer") or "below"))
         self._apply_opacity(float(self.cfg.get("opacity") or 1.0))
         return False
+
+    def _apply_taskbar_hint(self, skip: bool) -> None:
+        self.cfg["skipTaskbar"] = bool(skip)
+        self.set_skip_taskbar_hint(bool(skip))
+        self.set_skip_pager_hint(bool(skip))
 
     def _apply_layer(self, layer: str) -> None:
         layer = layer if layer in ("below", "above", "normal") else "below"
@@ -313,9 +307,9 @@ class ClockWidget(Gtk.Window):
         # Layer submenu
         sub_layer = submenu("Слой окна")
         for key, title in (
-            ("below", "Под окнами (виджет на столе)"),
+            ("below", "Под окнами (на рабочем столе)"),
             ("above", "Поверх всех окон"),
-            ("normal", "Обычное окно"),
+            ("normal", "Обычный слой"),
         ):
             prefix = "● " if self.cfg.get("layer") == key else "   "
             item(prefix + title, lambda _w, k=key: self._set_layer(k), sub_layer)
@@ -328,19 +322,26 @@ class ClockWidget(Gtk.Window):
             item(f"{prefix}{int(op * 100)}%", lambda _w, val=op: self._set_opacity(val), sub_op)
 
         # Size presets submenu
-        sub_sz = submenu("Размер виджета")
+        sub_sz = submenu("Размер окна")
         for label, w, h in (
             ("Компактный (320 × 360)", 320, 360),
             ("Стандартный (440 × 500)", 440, 500),
             ("Квадратный (460 × 460)", 460, 460),
             ("Крупный (600 × 660)", 600, 660),
+            ("Широкий холст (960 × 720)", 960, 720),
         ):
             item(label, lambda _w, rw=w, rh=h: self.resize(rw, rh), sub_sz)
+
+        skip_tb = bool(self.cfg.get("skipTaskbar", True))
+        item(
+            ("✓ " if skip_tb else "   ") + "Скрывать из панели задач (режим виджета)",
+            self._toggle_taskbar,
+        )
 
         item(
             "Разблокировать перемещение (L)"
             if not self._drag_enabled
-            else "Зафиксировать позицию (L)",
+            else "Зафиксировать позицию и размер (L)",
             self._toggle_lock,
         )
 
@@ -354,7 +355,7 @@ class ClockWidget(Gtk.Window):
 
     def _set_pref(self, key: str, val: str) -> None:
         self.cfg[key] = val
-        save_config(self.cfg, self._framed)
+        save_config(self.cfg)
         self._sync_js_state()
         self._rebuild_menu()
 
@@ -364,21 +365,26 @@ class ClockWidget(Gtk.Window):
         nxt = options[(idx + 1) % len(options)]
         self._set_pref(key, nxt)
 
+    def _toggle_taskbar(self, *_args) -> None:
+        self._apply_taskbar_hint(not bool(self.cfg.get("skipTaskbar", True)))
+        save_config(self.cfg)
+        self._rebuild_menu()
+
     def _toggle_lock(self, *_args) -> None:
         self._drag_enabled = not self._drag_enabled
         self.cfg["locked"] = not self._drag_enabled
-        save_config(self.cfg, self._framed)
+        save_config(self.cfg)
         self._sync_js_state()
         self._rebuild_menu()
 
     def _set_layer(self, layer: str) -> None:
         self._apply_layer(layer)
-        save_config(self.cfg, self._framed)
+        save_config(self.cfg)
         self._rebuild_menu()
 
     def _set_opacity(self, opacity: float) -> None:
         self._apply_opacity(opacity)
-        save_config(self.cfg, self._framed)
+        save_config(self.cfg)
         self._rebuild_menu()
 
     @staticmethod
@@ -408,7 +414,6 @@ class ClockWidget(Gtk.Window):
     def _on_scroll(self, _widget: Gtk.Widget, event: Gdk.EventScroll) -> bool:
         if not self._drag_enabled:
             return False
-        # Ctrl + wheel or Alt + wheel scales the widget smoothly
         mods = event.state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.MOD1_MASK)
         if not mods:
             return False
@@ -449,7 +454,6 @@ class ClockWidget(Gtk.Window):
                         int(event.time),
                     )
                     return True
-            # Let clicks on the bottom HUD bar or caption pass through to WebKit!
             if event.y >= alloc.height - 68:
                 return False
             if self._drag_enabled:
@@ -501,7 +505,7 @@ class ClockWidget(Gtk.Window):
 
     def _persist(self) -> None:
         self.cfg["locked"] = not self._drag_enabled
-        save_config(self.cfg, self._framed)
+        save_config(self.cfg)
 
     def _on_delete(self, *_args) -> bool:
         self._persist()
@@ -512,11 +516,10 @@ class ClockWidget(Gtk.Window):
         Gtk.main_quit()
 
 
-def _parse_args(argv: list[str]) -> tuple[str | None, float, bool]:
-    """Return (snapshot_path_or_None, delay_sec, framed)."""
+def _parse_args(argv: list[str]) -> tuple[str | None, float]:
+    """Return (snapshot_path_or_None, delay_sec)."""
     snap: str | None = None
     delay = 1.6
-    framed = False
     args = list(argv)
     while args:
         a = args.pop(0)
@@ -526,33 +529,33 @@ def _parse_args(argv: list[str]) -> tuple[str | None, float, bool]:
             snap = a.split("=", 1)[1]
         elif a == "--delay" and args:
             delay = float(args.pop(0))
-        elif a == "--app":
-            framed = True
+        elif a in ("--app", "--widget"):
+            pass
         elif a in ("-h", "--help"):
             print(
-                "Usage: widget.py [--app] [--snapshot FILE.png] [--delay SECONDS]\n"
-                "  Frameless Suprematist Clock desktop widget."
+                "Usage: widget.py [--snapshot FILE.png] [--delay SECONDS]\n"
+                "  Suprematist Clock 2.0 frameless desktop application."
             )
             sys.exit(0)
         else:
-            print(f"widget: unknown arg {a}", file=sys.stderr)
+            print(f"clock: unknown arg {a}", file=sys.stderr)
             sys.exit(2)
-    return snap, delay, framed
+    return snap, delay
 
 
 def main() -> int:
     if not INDEX.is_file():
-        print(f"widget: missing {INDEX}", file=sys.stderr)
+        print(f"clock: missing {INDEX}", file=sys.stderr)
         return 1
-    snap_path, delay, framed = _parse_args(sys.argv[1:])
+    snap_path, delay = _parse_args(sys.argv[1:])
     os.environ.setdefault("GTK_THEME", os.environ.get("GTK_THEME", "Adwaita:dark"))
-    GLib.set_prgname("SuprematistClock" if framed else APP_ID)
-    win = ClockWidget(framed=framed)
+    GLib.set_prgname(APP_ID)
+    win = ClockWindow()
 
     if snap_path:
 
         def _finish_ok(path: Path, detail: str) -> None:
-            print(f"widget: wrote {path} ({detail})")
+            print(f"clock: wrote {path} ({detail})")
             Gtk.main_quit()
 
         def _do_snap() -> bool:
@@ -566,7 +569,7 @@ def main() -> int:
                     _finish_ok(out, f"{surface.get_width()}x{surface.get_height()} webkit")
                     return
                 except Exception as exc:
-                    print(f"widget: webkit snapshot failed: {exc}", file=sys.stderr)
+                    print(f"clock: webkit snapshot failed: {exc}", file=sys.stderr)
                 gdk_win = win.get_window()
                 if gdk_win is None:
                     Gtk.main_quit()
@@ -575,14 +578,14 @@ def main() -> int:
                 h = gdk_win.get_height()
                 pb = Gdk.pixbuf_get_from_window(gdk_win, 0, 0, w, h)
                 if pb is None:
-                    print("widget: pixbuf_get_from_window returned None", file=sys.stderr)
+                    print("clock: pixbuf_get_from_window returned None", file=sys.stderr)
                     Gtk.main_quit()
                     return
                 try:
                     pb.savev(str(out), "png", [], [])
                     _finish_ok(out, f"{w}x{h} gdk")
                 except Exception as exc:
-                    print(f"widget: write png failed: {exc}", file=sys.stderr)
+                    print(f"clock: write png failed: {exc}", file=sys.stderr)
                     Gtk.main_quit()
 
             try:
@@ -594,7 +597,7 @@ def main() -> int:
                     None,
                 )
             except Exception as exc:
-                print(f"widget: get_snapshot error: {exc}", file=sys.stderr)
+                print(f"clock: get_snapshot error: {exc}", file=sys.stderr)
                 Gtk.main_quit()
             return False
 

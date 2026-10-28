@@ -1,8 +1,8 @@
 # Супрематистские часы 2.0 / Suprematist Clock 2.0
 
-Аналоговые часы в духе супрематизма Малевича: чёрный / красный / жёлтый / белый / глубокий синий, асимметричные плоскости, чёрный квадрат на циферблате.
+Аналоговые часы и прозрачный настольный виджет в духе супрематизма Малевича: чёрный / красный / жёлтый / белый / глубокий синий, асимметричные плоскости, чёрный квадрат на циферблате.
 
-Стрелки движутся **непрерывно** — без секундных скачков. Работает на **Windows, macOS и Linux**: в браузере, как приложение и как прозрачный виджет на рабочий стол.
+Стрелки движутся **непрерывно** — без секундных скачков. Работает на **Windows, macOS и Linux**: как безрамочное прозрачное приложение-виджет на рабочем столе и в браузере.
 
 - **Онлайн (GitHub Pages):** https://yunoarasaka.github.io/suprematist-clock-2/
 - **Репозиторий:** https://github.com/yunoarasaka/suprematist-clock-2
@@ -27,12 +27,13 @@
   - *Только круг циферблата (прозрачный)* — на столе остаётся только сам круглый циферблат.
 - **Живая подпись / цифровые часы** (`D` или клик по подписи): переключение между манифестом `время · плоскость`, цифровым временем с датой (`ЧЧ · ММ · СС — ДН · ЧИСЛО МЕС`) и скрытым режимом.
 - **Быстрый HUD-док + контекстное меню (ПКМ) и системный трей**:
+  - Выбор слоя окна (*Под окнами / Поверх всех окон / Обычный*) и опция *«Скрывать из панели задач»*;
   - Фиксация позиции и размера (`L`);
-  - Режим «Пропускать клики сквозь виджет» (click-through в Electron — управляется через иконку в трее);
+  - Режим «Пропускать клики сквозь окно» (click-through — управляется через иконку в трее);
   - Настройка прозрачности окна (`100% / 85% / 70% / 50%`);
   - Ресайз мышкой за любой край или угол окна (`14px` зона) либо плавное масштабирование через **`Ctrl + колесо мыши`** (`Alt + колесо`);
   - Автоматическое сохранение позиции, размеров и выбранной темы между перезапусками;
-  - Обновлённая скруглённая иконка приложения (squircle) в точном дизайне циферблата.
+  - Скруглённая иконка приложения (squircle) в точном дизайне циферблата.
 
 ---
 
@@ -40,9 +41,9 @@
 
 | Клавиша / действие | Что делает |
 | --- | --- |
-| **ЛКМ (внутри окна)** | Перетащить виджет / окно |
+| **ЛКМ (внутри окна)** | Перетащить часы |
 | **ЛКМ (за край или угол)** | Изменить размер окна |
-| **`Ctrl` / `Alt` + колесо мыши** | Плавно увеличить / уменьшить размер виджета |
+| **`Ctrl` / `Alt` + колесо мыши** | Плавно увеличить / уменьшить размер часов |
 | **ПКМ** | Открыть контекстное меню со всеми настройками |
 | **Двойной клик по центру** | Переключить режим секундной стрелки |
 | **Клик по подписи внизу** | Переключить манифест / цифровое время и дату / скрыть |
@@ -53,7 +54,7 @@
 | **`H`** | Закрепить / скрыть нижнюю панель быстрых кнопок (HUD) |
 | **`L`** | Зафиксировать / разблокировать перемещение и размер окна |
 | **`F` / `F11`** | Полноэкранный режим |
-| **`Esc` / `Q`** | Закрыть окно / виджет |
+| **`Esc` / `Q`** | Закрыть часы |
 
 ---
 
@@ -61,24 +62,35 @@
 
 ### 1. Скачать готовый билд (Windows / macOS / Linux)
 
-Откройте [Releases](https://github.com/yunoarasaka/suprematist-clock-2/releases) и скачайте сборку под вашу ОС. В каждом релизе два варианта:
+Откройте [Releases](https://github.com/yunoarasaka/suprematist-clock-2/releases) и скачайте сборку под вашу ОС:
 
-| Вариант | Поведение в системе |
-| --- | --- |
-| `SuprematistClock-2.x…` (Приложение) | Отображается в панели задач / доке и `Alt+Tab`, крупный стартовый размер (`1280×800`) |
-| `SuprematistClock-Widget-2.x…` (Виджет) | Скрыт из панели задач и `Alt+Tab` (`skipTaskbar`), управляется из ПКМ и системного трея, компактный размер (`440×500`), закреплён на рабочем столе |
-
-- **Windows:** `*-win-setup.exe` (установщик), `*-win-portable.exe` или `*-win-x64.zip`
-- **macOS:** `SuprematistClock-*-mac.zip` / `.dmg` и `SuprematistClock-Widget-*-mac.zip` / `.dmg`
-- **Linux:** `.deb` и `.AppImage` (на **Ubuntu 24.04+ / 26** рекомендуется **`.deb`** — он автоматически ставит AppArmor-профиль с `userns` в `/etc/apparmor.d/`):
+- **Windows:** `SuprematistClock-2.0.0-win-setup.exe` (установщик) или `SuprematistClock-2.0.0-win-portable.exe`
+- **macOS:** `SuprematistClock-2.0.0-mac.zip` / `.dmg`
+- **Linux:** `SuprematistClock-2.0.0-linux.deb` или `SuprematistClock-2.0.0-linux.AppImage` (на **Ubuntu 24.04+ / 26** рекомендуется **`.deb`** — он автоматически ставит AppArmor-профиль с `userns` в `/etc/apparmor.d/`):
 
 ```bash
-sudo apt install ./SuprematistClock-2.0.0-linux.deb ./SuprematistClock-Widget-2.0.0-linux.deb
+sudo apt install ./SuprematistClock-2.0.0-linux.deb
 SuprematistClock
-SuprematistClock-Widget
 ```
 
-### 2. Запустить из исходников через npm (Windows / macOS / Linux)
+### 2. Запустить нативно на Ubuntu / GNOME (GTK 3 + WebKit2)
+
+Лёгкий нативный запуск без упаковки с полной поддержкой 32-битной RGBA-прозрачности и слоя `keep_below`:
+
+```bash
+sudo apt install -y python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1
+chmod +x run.sh widget.py install.sh
+./run.sh
+```
+
+Установка ярлыка «Супрематистские часы» и скруглённых иконок в меню приложений без `sudo`:
+
+```bash
+./install.sh
+# удаление: ./uninstall.sh
+```
+
+### 3. Запустить через npm (Windows / macOS / Linux)
 
 Нужны [Node.js](https://nodejs.org/) (LTS) и npm:
 
@@ -86,25 +98,7 @@ SuprematistClock-Widget
 git clone https://github.com/yunoarasaka/suprematist-clock-2.git
 cd suprematist-clock-2
 npm install
-npm start          # окно приложения
-npm run widget     # виджет на рабочий стол (--widget)
-```
-
-### 3. Linux-native GTK-виджет (Ubuntu / GNOME)
-
-Лёгкий нативный вариант для Linux на **GTK 3 + WebKit2** с полной поддержкой 32-битной RGBA-прозрачности и слоя `keep_below`:
-
-```bash
-sudo apt install -y python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1
-chmod +x widget.sh widget.py run.sh install.sh
-./widget.sh
-```
-
-Установка ярлыков («Супрематистские часы» и «Супрематистские часы (виджет)») и скруглённых иконок в меню приложений без `sudo`:
-
-```bash
-./install.sh
-# удаление: ./uninstall.sh
+npm start
 ```
 
 ### 4. Открыть в браузере
@@ -120,11 +114,11 @@ python3 -m http.server 8765
 
 ## English (short)
 
-**Suprematist Clock 2.0** — cross-platform analog clock & transparent desktop widget inspired by Kazimir Malevich's Suprematism.
+**Suprematist Clock 2.0** — cross-platform frameless analog clock & transparent desktop widget inspired by Kazimir Malevich's Suprematism.
 
 - **Web Demo (GitHub Pages):** https://yunoarasaka.github.io/suprematist-clock-2/
-- **Downloads (Win / macOS / Linux):** [Releases](https://github.com/yunoarasaka/suprematist-clock-2/releases) (`SuprematistClock-2.x` app vs `SuprematistClock-Widget-2.x` desktop widget)
-- **What's new in 2.0:**
+- **Downloads (Win / macOS / Linux):** [Releases](https://github.com/yunoarasaka/suprematist-clock-2/releases) (`SuprematistClock-2.0.0-*`)
+- **Features:**
   - **3 Malevich Palettes** (`T`): *Dark Supremus*, *Museum Canvas (Light)*, *Red Wedge*;
   - **3 Second-Hand Modes** (`S` or double-click hub): *0–30s Flight*, *60s Eternal Drift*, *Center Orbit*;
   - **4 Background Modes & True 32-bit RGBA Transparency** (`B`): *Full Canvas*, *Minimal*, *Transparent + Planes*, *Transparent Dial Only*;
@@ -137,14 +131,9 @@ python3 -m http.server 8765
 
 ```bash
 npm install
-# приложение → dist/
 npm run dist:linux
 npm run dist:win
 npm run dist:mac
-# виджет → dist-widget/
-npm run dist:linux:widget
-npm run dist:win:widget
-npm run dist:mac:widget
 ```
 
 GitHub Actions (`.github/workflows/release.yml`) автоматически собирает и публикует в GitHub Releases пакеты под Linux, Windows и macOS при пуше тега `v*` или в ветку `main`:
@@ -165,10 +154,9 @@ suprematist-clock-2/
   js/clock.js                     # непрерывная кинематика стрелок и API настроек
   icons/                          # SVG, генератор render_pngs.py, PNG (48..512) и .icns
   electron/main.js                # Electron: прозрачное окно, контекстное меню, трей
-  electron/main-widget.js         # точка входа для пакетной сборки виджета
-  electron-builder.widget.yml     # конфиг сборки виджета
-  widget.py / widget.sh           # Linux-native виджет на GTK 3 + WebKit2
-  run.sh / install.sh             # запуск и установка ярлыков в меню Ubuntu
+  package.json                    # конфигурация Electron и electron-builder
+  widget.py / run.sh              # Linux-native запуск на GTK 3 + WebKit2
+  install.sh / uninstall.sh       # установка ярлыка и иконок в меню Ubuntu
   .github/workflows/              # CI/CD релизы для Linux, Windows и macOS
   LICENSE                         # MIT
 ```

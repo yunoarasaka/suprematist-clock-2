@@ -1,7 +1,7 @@
 {
   "name": "suprematist-clock",
   "version": "2.0.0",
-  "description": "Suprematist Clock 2.0 — Супрематистские аналоговые часы (веб, Electron-приложение и прозрачный виджет Win/macOS/Linux)",
+  "description": "Suprematist Clock 2.0 — Супрематистские аналоговые часы и прозрачный виджет (Win/macOS/Linux)",
   "desktopName": "suprematist-clock",
   "main": "electron/main.js",
   "author": {
@@ -23,15 +23,11 @@
   ],
   "scripts": {
     "start": "electron .",
-    "widget": "electron . --widget",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --publish never",
     "dist:linux": "electron-builder --linux --publish never",
     "dist:win": "electron-builder --win --publish never",
-    "dist:mac": "electron-builder --mac --publish never",
-    "dist:linux:widget": "electron-builder --linux --config electron-builder.widget.yml --publish never",
-    "dist:win:widget": "electron-builder --win --config electron-builder.widget.yml --publish never",
-    "dist:mac:widget": "electron-builder --mac --config electron-builder.widget.yml --publish never"
+    "dist:mac": "electron-builder --mac --publish never"
   },
   "build": {
     "appId": "com.yunoarasaka.suprematist-clock",
@@ -62,7 +58,7 @@
       "syncDesktopName": true,
       "desktop": {
         "entry": {
-          "Comment": "On Ubuntu 24+/26 prefer the .deb (AppArmor userns). AppImage may need --no-sandbox.",
+          "Comment": "Suprematist analog clock and transparent desktop widget.",
           "StartupWMClass": "suprematist-clock"
         }
       }

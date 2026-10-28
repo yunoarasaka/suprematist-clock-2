@@ -15,20 +15,11 @@ const ROOT = path.join(__dirname, "..");
 const INDEX = path.join(ROOT, "index.html");
 const ICON = path.join(ROOT, "icons", "suprematist-clock.png");
 
-const isWidget =
-  process.argv.includes("--widget") ||
-  process.env.SUPREMATIST_WIDGET === "1";
-
 // Required on Linux (X11/XWayland) for 32-bit ARGB transparent BrowserWindow
 app.commandLine.appendSwitch("enable-transparent-visuals");
 
-// Electron/Chromium WM_CLASS on Linux comes from app name (= package.json name).
-// Keep it stable and distinct for app vs widget so .desktop StartupWMClass can match.
-const LINUX_APP_NAME = isWidget
-  ? "suprematist-clock-widget"
-  : "suprematist-clock";
 if (process.platform === "linux") {
-  app.setName(LINUX_APP_NAME);
+  app.setName("suprematist-clock");
 }
 
 /** @type {BrowserWindow | null} */
@@ -37,19 +28,17 @@ let mainWindow = null;
 let tray = null;
 
 function stateFilePath() {
-  return path.join(
-    app.getPath("userData"),
-    isWidget ? "widget-state.json" : "window-state.json"
-  );
+  return path.join(app.getPath("userData"), "window-state.json");
 }
 
 function loadWindowState() {
   const defaults = {
-    width: isWidget ? 440 : 1280,
-    height: isWidget ? 500 : 800,
+    width: 440,
+    height: 500,
     x: undefined,
     y: undefined,
-    alwaysOnTop: isWidget,
+    alwaysOnTop: false,
+    skipTaskbar: true,
     opacity: 1.0,
     locked: false,
     clickThrough: false,
@@ -99,19 +88,18 @@ function runClockAction(jsExpr) {
 function applyWindowFlags() {
   if (!mainWindow || mainWindow.isDestroyed() || !winState) return;
   mainWindow.setAlwaysOnTop(Boolean(winState.alwaysOnTop));
+  mainWindow.setSkipTaskbar(Boolean(winState.skipTaskbar));
   mainWindow.setOpacity(Number(winState.opacity) || 1.0);
-  if (isWidget) {
-    mainWindow.setMovable(!winState.locked);
-    mainWindow.setResizable(!winState.locked);
-    mainWindow.setIgnoreMouseEvents(Boolean(winState.clickThrough), {
-      forward: true,
-    });
-    mainWindow.webContents
-      .executeJavaScript(
-        `document.documentElement.classList.toggle('locked', ${Boolean(winState.locked)});`
-      )
-      .catch(() => {});
-  }
+  mainWindow.setMovable(!winState.locked);
+  mainWindow.setResizable(!winState.locked);
+  mainWindow.setIgnoreMouseEvents(Boolean(winState.clickThrough), {
+    forward: true,
+  });
+  mainWindow.webContents
+    .executeJavaScript(
+      `document.documentElement.classList.toggle('locked', ${Boolean(winState.locked)});`
+    )
+    .catch(() => {});
   saveWindowState();
   updateTrayMenu();
 }
@@ -200,9 +188,15 @@ function buildContextMenu() {
         applyWindowFlags();
       },
     },
-  ];
-
-  template.push(
+    {
+      label: "Скрывать из панели задач (режим виджета)",
+      type: "checkbox",
+      checked: Boolean(winState?.skipTaskbar),
+      click: (item) => {
+        winState.skipTaskbar = item.checked;
+        applyWindowFlags();
+      },
+    },
     {
       label: "Зафиксировать позицию и размер (L)",
       type: "checkbox",
@@ -213,7 +207,7 @@ function buildContextMenu() {
       },
     },
     {
-      label: "Пропускать клики сквозь виджет",
+      label: "Пропускать клики сквозь окно",
       type: "checkbox",
       checked: Boolean(winState?.clickThrough),
       click: (item) => {
@@ -252,14 +246,18 @@ function buildContextMenu() {
           label: "Крупный (600 × 660)",
           click: () => mainWindow?.setSize(600, 660),
         },
+        {
+          label: "Широкий холст (960 × 720)",
+          click: () => mainWindow?.setSize(960, 720),
+        },
       ],
     },
     { type: "separator" },
     {
       label: "Закрыть (Esc / Q)",
       click: () => app.quit(),
-    }
-  );
+    },
+  ];
 
   return Menu.buildFromTemplate(template);
 }
@@ -270,11 +268,11 @@ function updateTrayMenu() {
 }
 
 function setupTray(iconImage) {
-  if (!isWidget || !iconImage || iconImage.isEmpty()) return;
+  if (!iconImage || iconImage.isEmpty()) return;
   try {
     const trayIcon = iconImage.resize({ width: 22, height: 22 });
     tray = new Tray(trayIcon);
-    tray.setToolTip("Супрематистские часы (виджет)");
+    tray.setToolTip("Супрематистские часы");
     updateTrayMenu();
     tray.on("click", () => {
       if (!mainWindow) return;
@@ -289,7 +287,6 @@ function setupTray(iconImage) {
 
 function createWindow() {
   winState = loadWindowState();
-  // Always start with clickThrough disabled so user isn't locked out if tray is hidden
   winState.clickThrough = false;
 
   const iconImage = resolveIcon();
@@ -306,9 +303,12 @@ function createWindow() {
     transparent: true,
     frame: false,
     hasShadow: false,
+    alwaysOnTop: Boolean(winState.alwaysOnTop),
+    skipTaskbar: Boolean(winState.skipTaskbar),
+    resizable: !winState.locked,
     show: false,
     autoHideMenuBar: true,
-    title: isWidget ? "Супрематистские часы (виджет)" : "Супрематистские часы",
+    title: "Супрематистские часы",
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -318,12 +318,6 @@ function createWindow() {
 
   if (iconImage && !iconImage.isEmpty()) {
     opts.icon = iconImage;
-  }
-
-  if (isWidget) {
-    opts.alwaysOnTop = Boolean(winState.alwaysOnTop);
-    opts.skipTaskbar = true;
-    opts.resizable = !winState.locked;
   }
 
   mainWindow = new BrowserWindow(opts);

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag (e.g. v1.1.1)"
+        description: "Release tag (e.g. v2.0.0)"
         required: true
         type: string
       runner:
@@ -22,14 +22,12 @@ permissions:
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  # Unsigned CI builds — do not auto-discover signing identities
   CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
 jobs:
   build-mac:
     name: build (${{ inputs.runner }}, mac)
     runs-on: ${{ inputs.runner }}
-    # Hosted mac runners can sit in queue a long time under capacity pressure
     timeout-minutes: 120
 
     steps:
@@ -45,15 +43,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build macOS (app + widget)
-        run: |
-          npm run dist:mac
-          npm run dist:mac:widget
+      - name: Build macOS
+        run: npm run dist:mac
 
       - name: List dist outputs
-        run: |
-          ls -la dist || true
-          ls -la dist-widget || true
+        run: ls -la dist || true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -62,21 +56,17 @@ jobs:
           path: |
             dist/*.dmg
             dist/*.zip
-            dist-widget/*.dmg
-            dist-widget/*.zip
           if-no-files-found: error
 
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag }}
-          name: Suprematist Clock ${{ inputs.tag }}
+          name: Suprematist Clock 2.0 (${{ inputs.tag }})
           draft: false
           generate_release_notes: true
           files: |
             dist/*.dmg
             dist/*.zip
-            dist-widget/*.dmg
-            dist-widget/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
