@@ -1,6 +1,13 @@
 "use strict";
 
-const { app, BrowserWindow, Menu, shell, nativeImage } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  Menu,
+  Tray,
+  shell,
+  nativeImage,
+} = require("electron");
 const path = require("path");
 const fs = require("fs");
 
@@ -11,6 +18,9 @@ const ICON = path.join(ROOT, "icons", "suprematist-clock.png");
 const isWidget =
   process.argv.includes("--widget") ||
   process.env.SUPREMATIST_WIDGET === "1";
+
+// Required on Linux (X11/XWayland) for 32-bit ARGB transparent BrowserWindow
+app.commandLine.appendSwitch("enable-transparent-visuals");
 
 // Electron/Chromium WM_CLASS on Linux comes from app name (= package.json name).
 // Keep it stable and distinct for app vs widget so .desktop StartupWMClass can match.
@@ -23,6 +33,54 @@ if (process.platform === "linux") {
 
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
+/** @type {Tray | null} */
+let tray = null;
+
+function stateFilePath() {
+  return path.join(
+    app.getPath("userData"),
+    isWidget ? "widget-state.json" : "window-state.json"
+  );
+}
+
+function loadWindowState() {
+  const defaults = {
+    width: isWidget ? 440 : 1280,
+    height: isWidget ? 500 : 800,
+    x: undefined,
+    y: undefined,
+    alwaysOnTop: isWidget,
+    opacity: 1.0,
+    locked: false,
+    clickThrough: false,
+  };
+  try {
+    const p = stateFilePath();
+    if (fs.existsSync(p)) {
+      const raw = JSON.parse(fs.readFileSync(p, "utf-8"));
+      return { ...defaults, ...raw };
+    }
+  } catch (_) {}
+  return defaults;
+}
+
+let winState = null;
+
+function saveWindowState() {
+  if (!winState) return;
+  try {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const b = mainWindow.getBounds();
+      winState.x = b.x;
+      winState.y = b.y;
+      winState.width = b.width;
+      winState.height = b.height;
+    }
+    const p = stateFilePath();
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, JSON.stringify(winState, null, 2) + "\n", "utf-8");
+  } catch (_) {}
+}
 
 function resolveIcon() {
   if (fs.existsSync(ICON)) {
@@ -31,16 +89,223 @@ function resolveIcon() {
   return undefined;
 }
 
+function runClockAction(jsExpr) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents
+    .executeJavaScript(`window.SuprematistClock && window.SuprematistClock.${jsExpr}`)
+    .catch(() => {});
+}
+
+function applyWindowFlags() {
+  if (!mainWindow || mainWindow.isDestroyed() || !winState) return;
+  mainWindow.setAlwaysOnTop(Boolean(winState.alwaysOnTop));
+  mainWindow.setOpacity(Number(winState.opacity) || 1.0);
+  if (isWidget) {
+    mainWindow.setMovable(!winState.locked);
+    mainWindow.setResizable(!winState.locked);
+    mainWindow.setIgnoreMouseEvents(Boolean(winState.clickThrough), {
+      forward: true,
+    });
+    mainWindow.webContents
+      .executeJavaScript(
+        `document.documentElement.classList.toggle('locked', ${Boolean(winState.locked)});`
+      )
+      .catch(() => {});
+  }
+  saveWindowState();
+  updateTrayMenu();
+}
+
+function buildContextMenu() {
+  const template = [
+    {
+      label: "Палитра Малевича",
+      submenu: [
+        {
+          label: "Чёрный супремус (Тёмная)",
+          click: () => runClockAction("setTheme('dark')"),
+        },
+        {
+          label: "Музейный холст (Светлая)",
+          click: () => runClockAction("setTheme('light')"),
+        },
+        {
+          label: "Красный клин (Авангард)",
+          click: () => runClockAction("setTheme('red')"),
+        },
+      ],
+    },
+    {
+      label: "Секундная стрелка",
+      submenu: [
+        {
+          label: "Полёт 0–30с (улетает на 30с)",
+          click: () => runClockAction("setSecondMode('flight30')"),
+        },
+        {
+          label: "Вечный дрейф (60с в кадре)",
+          click: () => runClockAction("setSecondMode('drift')"),
+        },
+        {
+          label: "В центре циферблата (классика)",
+          click: () => runClockAction("setSecondMode('orbit')"),
+        },
+      ],
+    },
+    {
+      label: "Фон и композиция",
+      submenu: [
+        {
+          label: "Холст + парящие фигуры",
+          click: () => runClockAction("setBgMode('full')"),
+        },
+        {
+          label: "Строгий (без фоновых фигур)",
+          click: () => runClockAction("setBgMode('minimal')"),
+        },
+        {
+          label: "Прозрачный фон + фигуры",
+          click: () => runClockAction("setBgMode('transparent')"),
+        },
+        {
+          label: "Только круг циферблата (прозрачный)",
+          click: () => runClockAction("setBgMode('transparent-dial')"),
+        },
+      ],
+    },
+    {
+      label: "Подпись внизу",
+      submenu: [
+        {
+          label: "Манифест «время · плоскость»",
+          click: () => runClockAction("setCaptionMode('manifesto')"),
+        },
+        {
+          label: "Цифровое время и дата",
+          click: () => runClockAction("setCaptionMode('digital')"),
+        },
+        {
+          label: "Скрыть подпись",
+          click: () => runClockAction("setCaptionMode('hidden')"),
+        },
+      ],
+    },
+    { type: "separator" },
+    {
+      label: "Поверх всех окон",
+      type: "checkbox",
+      checked: Boolean(winState?.alwaysOnTop),
+      click: (item) => {
+        winState.alwaysOnTop = item.checked;
+        applyWindowFlags();
+      },
+    },
+  ];
+
+  template.push(
+    {
+      label: "Зафиксировать позицию и размер (L)",
+      type: "checkbox",
+      checked: Boolean(winState?.locked),
+      click: (item) => {
+        winState.locked = item.checked;
+        applyWindowFlags();
+      },
+    },
+    {
+      label: "Пропускать клики сквозь виджет",
+      type: "checkbox",
+      checked: Boolean(winState?.clickThrough),
+      click: (item) => {
+        winState.clickThrough = item.checked;
+        applyWindowFlags();
+      },
+    },
+    {
+      label: "Прозрачность окна",
+      submenu: [1.0, 0.85, 0.7, 0.5].map((op) => ({
+        label: `${Math.round(op * 100)}%`,
+        type: "radio",
+        checked: Math.abs((winState?.opacity || 1) - op) < 0.05,
+        click: () => {
+          winState.opacity = op;
+          applyWindowFlags();
+        },
+      })),
+    },
+    {
+      label: "Размер окна",
+      submenu: [
+        {
+          label: "Компактный (320 × 360)",
+          click: () => mainWindow?.setSize(320, 360),
+        },
+        {
+          label: "Стандартный (440 × 500)",
+          click: () => mainWindow?.setSize(440, 500),
+        },
+        {
+          label: "Квадратный (460 × 460)",
+          click: () => mainWindow?.setSize(460, 460),
+        },
+        {
+          label: "Крупный (600 × 660)",
+          click: () => mainWindow?.setSize(600, 660),
+        },
+      ],
+    },
+    { type: "separator" },
+    {
+      label: "Закрыть (Esc / Q)",
+      click: () => app.quit(),
+    }
+  );
+
+  return Menu.buildFromTemplate(template);
+}
+
+function updateTrayMenu() {
+  if (!tray) return;
+  tray.setContextMenu(buildContextMenu());
+}
+
+function setupTray(iconImage) {
+  if (!isWidget || !iconImage || iconImage.isEmpty()) return;
+  try {
+    const trayIcon = iconImage.resize({ width: 22, height: 22 });
+    tray = new Tray(trayIcon);
+    tray.setToolTip("Супрематистские часы (виджет)");
+    updateTrayMenu();
+    tray.on("click", () => {
+      if (!mainWindow) return;
+      if (mainWindow.isVisible()) {
+        mainWindow.focus();
+      } else {
+        mainWindow.show();
+      }
+    });
+  } catch (_) {}
+}
+
 function createWindow() {
+  winState = loadWindowState();
+  // Always start with clickThrough disabled so user isn't locked out if tray is hidden
+  winState.clickThrough = false;
+
   const iconImage = resolveIcon();
 
   /** @type {Electron.BrowserWindowConstructorOptions} */
   const opts = {
-    width: isWidget ? 440 : 1280,
-    height: isWidget ? 500 : 800,
-    minWidth: isWidget ? 280 : 640,
-    minHeight: isWidget ? 320 : 480,
-    backgroundColor: "#0a0a12",
+    width: winState.width,
+    height: winState.height,
+    x: winState.x,
+    y: winState.y,
+    minWidth: 220,
+    minHeight: 240,
+    backgroundColor: "#00000000",
+    transparent: true,
+    frame: false,
+    hasShadow: false,
     show: false,
     autoHideMenuBar: true,
     title: isWidget ? "Супрематистские часы (виджет)" : "Супрематистские часы",
@@ -56,20 +321,14 @@ function createWindow() {
   }
 
   if (isWidget) {
-    opts.frame = false;
-    opts.alwaysOnTop = true;
+    opts.alwaysOnTop = Boolean(winState.alwaysOnTop);
     opts.skipTaskbar = true;
-    opts.hasShadow = false;
-    opts.resizable = true;
-    if (process.platform === "darwin") {
-      opts.titleBarStyle = "hidden";
-    }
+    opts.resizable = !winState.locked;
   }
 
   mainWindow = new BrowserWindow(opts);
 
-  // Prefer file URL with query so index.html early script sees widget=1
-  const fileUrl = `file://${INDEX.replace(/\\/g, "/")}${isWidget ? "?widget=1" : ""}`;
+  const fileUrl = `file://${INDEX.replace(/\\/g, "/")}?widget=1`;
   mainWindow.loadURL(fileUrl);
 
   mainWindow.once("ready-to-show", () => {
@@ -77,9 +336,31 @@ function createWindow() {
       if (process.platform === "linux" && iconImage && !iconImage.isEmpty()) {
         mainWindow.setIcon(iconImage);
       }
+      applyWindowFlags();
       mainWindow.show();
     }
   });
+
+  mainWindow.webContents.on("context-menu", () => {
+    const menu = buildContextMenu();
+    menu.popup({ window: mainWindow });
+  });
+
+  mainWindow.webContents.on("before-input-event", (event, input) => {
+    if (input.type !== "keyDown") return;
+    if (input.key === "Escape" || input.key === "q" || input.key === "Q") {
+      event.preventDefault();
+      app.quit();
+    } else if (input.key === "l" || input.key === "L") {
+      event.preventDefault();
+      winState.locked = !winState.locked;
+      applyWindowFlags();
+    }
+  });
+
+  mainWindow.on("moved", saveWindowState);
+  mainWindow.on("resized", saveWindowState);
+  mainWindow.on("close", saveWindowState);
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
@@ -89,6 +370,8 @@ function createWindow() {
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
+
+  setupTray(iconImage);
 }
 
 app.whenReady().then(() => {

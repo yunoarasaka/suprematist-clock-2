@@ -5,11 +5,10 @@ Name=Супрематистские часы
 Name[en]=Suprematist Clock
 Comment=Аналоговые часы в стиле супрематизма
 Comment[en]=Analog clock in Suprematism style
-Exec=run.sh
-Path=
+Exec=/home/k/suprematist-clock/run.sh
+Path=/home/k/suprematist-clock
 Icon=suprematist-clock
 Terminal=false
 Categories=Utility;
-StartupWMClass=suprematist-clock
+StartupWMClass=SuprematistClock
 Keywords=clock;часы;suprematism;супрематизм;malevich;малевич;
-# После ./install.sh пути Path/Exec подставляются автоматически.

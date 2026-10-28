@@ -5,11 +5,10 @@ Name=Супрематистские часы (виджет)
 Name[en]=Suprematist Clock (widget)
 Comment=Виджет на рабочий стол без рамок
 Comment[en]=Frameless desktop widget clock
-Exec=widget.sh
-Path=
+Exec=/home/k/suprematist-clock/widget.sh
+Path=/home/k/suprematist-clock
 Icon=suprematist-clock
 Terminal=false
 Categories=Utility;
 StartupWMClass=suprematist-clock-widget
 Keywords=clock;widget;виджет;часы;suprematism;супрематизм;
-# После ./install.sh пути Path/Exec подставляются автоматически.

@@ -1,41 +1,27 @@
 #!/usr/bin/env bash
-# Launch Suprematist Clock as a Chromium/Chrome app window (Ubuntu).
-# Used by .desktop Exec= and by gtk-launch suprematist-clock.
+# Launch Suprematist Clock with true RGBA window transparency support.
+# Uses native GTK3+WebKit2 (or built Electron app) instead of Chrome --app,
+# because Chrome --app has an opaque white browser backdrop and cannot be transparent.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INDEX="file://${ROOT}/index.html"
+cd "$ROOT"
 
-pick_browser() {
-  local c
-  for c in \
-    google-chrome \
-    google-chrome-stable \
-    chromium-browser \
-    chromium \
-    brave-browser \
-    microsoft-edge; do
-    if command -v "$c" >/dev/null 2>&1; then
-      echo "$c"
-      return 0
-    fi
-  done
-  return 1
-}
+if [[ -x "${ROOT}/widget.sh" ]] && python3 -c '
+import gi
+gi.require_version("Gtk", "3.0")
+gi.require_version("WebKit2", "4.1")
+' 2>/dev/null; then
+  exec "${ROOT}/widget.sh" --app "$@"
+fi
 
-BROWSER="$(pick_browser)" || {
-  echo "Не найден Chrome/Chromium. Установите:" >&2
-  echo "  sudo apt install chromium-browser" >&2
-  echo "или откройте вручную: ${INDEX}" >&2
-  exit 1
-}
+if [[ -x "${ROOT}/dist/linux-unpacked/SuprematistClock" ]]; then
+  exec "${ROOT}/dist/linux-unpacked/SuprematistClock" --no-sandbox "$@"
+fi
 
-# App mode: no tab chrome. Translate disabled so the composition stays clean.
-exec "$BROWSER" \
-  --app="${INDEX}" \
-  --disable-features=Translate,TranslateUI \
-  --disable-translate \
-  --lang=ru \
-  --class=SuprematistClock \
-  --window-size=1280,800 \
-  "$@"
+if [[ -x "${ROOT}/node_modules/electron/dist/electron" ]]; then
+  exec "${ROOT}/node_modules/electron/dist/electron" "${ROOT}" --no-sandbox "$@"
+fi
+
+echo "Не найден ни GTK3+WebKit2, ни Electron." >&2
+exit 1

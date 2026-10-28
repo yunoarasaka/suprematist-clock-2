@@ -1,50 +1,99 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="!C?@5<0B8ABA:85 G0AK">
-  <!-- Mini suprematist clock face  same palette as the app -->
-  <rect width="512" height="512" fill="#050505"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Супрематистские часы">
+  <defs>
+    <!-- Rounded squircle mask so the icon is never a sharp-cornered stump -->
+    <clipPath id="icon-squircle">
+      <rect x="16" y="16" width="480" height="480" rx="112" ry="112"/>
+    </clipPath>
+    <radialGradient id="stage-glow-1" cx="70%" cy="20%" r="65%">
+      <stop offset="0%" stop-color="#17171c"/>
+      <stop offset="100%" stop-color="#050505" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="stage-glow-2" cx="15%" cy="85%" r="55%">
+      <stop offset="0%" stop-color="#0e1428"/>
+      <stop offset="100%" stop-color="#050505" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
 
-  <!-- Asymmetric field accents -->
-  <rect x="28" y="318" width="88" height="148" fill="#15245e"/>
-  <rect x="360" y="52" width="118" height="22" fill="#e0b83a" transform="rotate(8 360 52)"/>
-  <circle cx="430" cy="400" r="42" fill="none" stroke="#f5f2ea" stroke-width="10" opacity="0.85"/>
+  <g clip-path="url(#icon-squircle)">
+    <!-- Stage background -->
+    <rect x="16" y="16" width="480" height="480" fill="#050505"/>
+    <rect x="16" y="16" width="480" height="480" fill="url(#stage-glow-1)"/>
+    <rect x="16" y="16" width="480" height="480" fill="url(#stage-glow-2)"/>
 
-  <!-- Clock face -->
-  <circle cx="256" cy="256" r="168" fill="#ebe4d4"/>
+    <!-- Background field planes (matching index.html .field) -->
+    <!-- White slab top-left -->
+    <rect x="34" y="36" width="84" height="84" fill="#ebe4d4" opacity="0.92"/>
+    <!-- Red banner top-right -->
+    <rect x="344" y="38" width="136" height="58" fill="#c0152a" transform="rotate(-6 412 67)"/>
+    <!-- Yellow beam bottom-left -->
+    <rect x="42" y="438" width="210" height="12" fill="#e0b83a" transform="rotate(3.5 42 438)"/>
+    <!-- Blue tower bottom-right -->
+    <rect x="404" y="336" width="68" height="136" fill="#15245e"/>
+    <!-- White disk mid-left -->
+    <circle cx="48" cy="264" r="28" fill="#f5f2ea" opacity="0.9"/>
+    <!-- Red chip bottom-left -->
+    <rect x="108" y="368" width="28" height="28" fill="#c0152a"/>
 
-  <!-- Malevich black square overlapping the face -->
-  <rect x="78" y="72" width="118" height="118" fill="#0c0c0c"/>
+    <!-- Clock composition (translated from 480x480 clock viewBox centered at 256,256) -->
+    <g transform="translate(16, 16)">
+      <!-- Static asymmetric composition behind the face -->
+      <rect x="340" y="56" width="110" height="22" fill="#e0b83a" transform="rotate(8 340 56)"/>
+      <circle cx="400" cy="360" r="48" fill="none" stroke="#f5f2ea" stroke-width="10" opacity="0.85"/>
 
-  <!-- Face accents -->
-  <rect x="308" y="102" width="42" height="42" fill="#c0152a"/>
-  <rect x="86" y="310" width="64" height="14" fill="#15245e"/>
-  <circle cx="148" cy="158" r="10" fill="#e0b83a"/>
+      <!-- Clock face disk -->
+      <circle cx="240" cy="240" r="168" fill="#ebe4d4"/>
 
-  <!-- Hour marks (12 majors) -->
-  <g stroke="#0c0c0c" stroke-linecap="square">
-    <line x1="256" y1="100" x2="256" y2="118" stroke-width="5"/>
-    <line x1="256" y1="394" x2="256" y2="412" stroke-width="5"/>
-    <line x1="100" y1="256" x2="118" y2="256" stroke-width="5"/>
-    <line x1="394" y1="256" x2="412" y2="256" stroke-width="5"/>
-    <line x1="145.5" y1="145.5" x2="158.2" y2="158.2" stroke-width="5"/>
-    <line x1="353.8" y1="353.8" x2="366.5" y2="366.5" stroke-width="5"/>
-    <line x1="366.5" y1="145.5" x2="353.8" y2="158.2" stroke-width="5"/>
-    <line x1="158.2" y1="353.8" x2="145.5" y2="366.5" stroke-width="5"/>
+      <!-- Malevich Black Square overlapping the face -->
+      <rect x="72" y="64" width="118" height="118" fill="#0c0c0c"/>
+
+      <!-- Static face accents -->
+      <rect x="78" y="292" width="64" height="14" fill="#15245e"/>
+      <circle cx="136" cy="148" r="10" fill="#e0b83a"/>
+
+      <!-- Dial marks (cardinals, majors, and subtle minors) -->
+      <g stroke="#0c0c0c" stroke-linecap="square">
+        <!-- Cardinals (12, 3, 6, 9) -->
+        <line x1="240" y1="78" x2="240" y2="104" stroke-width="7"/>
+        <line x1="402" y1="240" x2="376" y2="240" stroke-width="7"/>
+        <line x1="240" y1="402" x2="240" y2="376" stroke-width="7"/>
+        <line x1="78" y1="240" x2="104" y2="240" stroke-width="7"/>
+        <!-- Majors (1, 2, 4, 5, 7, 8, 10, 11) -->
+        <line x1="320" y1="101.4" x2="311" y2="117" stroke-width="5"/>
+        <line x1="378.6" y1="160" x2="363" y2="169" stroke-width="5"/>
+        <line x1="378.6" y1="320" x2="363" y2="311" stroke-width="5"/>
+        <line x1="320" y1="378.6" x2="311" y2="363" stroke-width="5"/>
+        <line x1="160" y1="378.6" x2="169" y2="363" stroke-width="5"/>
+        <line x1="101.4" y1="320" x2="117" y2="311" stroke-width="5"/>
+        <line x1="101.4" y1="160" x2="117" y2="169" stroke-width="5"/>
+        <line x1="160" y1="101.4" x2="169" y2="117" stroke-width="5"/>
+      </g>
+
+      <!-- Orbital hour indicator: blue vertical bar (at ~1:05 = +34 deg, keeping Black Square unobstructed) -->
+      <g transform="rotate(34 240 240)">
+        <rect x="212" y="12" width="56" height="100" fill="#15245e"/>
+      </g>
+
+      <!-- Orbital minute indicator: red square on marks radius (at ~4:15 = +128 deg) -->
+      <g transform="rotate(128 240 240)">
+        <rect x="219" y="51" width="42" height="42" fill="#c0152a"/>
+      </g>
+
+      <!-- Flying second hand spear (at ~38s = 226 deg, dynamic flight across the dial) -->
+      <g transform="translate(248, 234) rotate(226)">
+        <rect x="-2.5" y="-176" width="5" height="190" fill="#c0152a"/>
+        <polygon points="0,-188 -6.5,-170 6.5,-170" fill="#c0152a"/>
+        <rect x="-5" y="8" width="10" height="36" fill="#c0152a"/>
+      </g>
+
+      <!-- Three-layer Suprematist center hub -->
+      <circle cx="240" cy="240" r="15" fill="#0c0c0c"/>
+      <circle cx="240" cy="240" r="9" fill="#c0152a"/>
+      <circle cx="240" cy="240" r="4.5" fill="#e0b83a"/>
+    </g>
   </g>
 
-  <!-- Hands at ~10:10 (recognizable clock pose) -->
-  <g transform="rotate(-60 256 256)">
-    <rect x="248" y="138" width="16" height="126" fill="#0c0c0c"/>
-  </g>
-  <g transform="rotate(60 256 256)">
-    <rect x="250" y="92" width="12" height="172" fill="#15245e"/>
-  </g>
-  <g transform="rotate(150 256 256)">
-    <line x1="256" y1="280" x2="256" y2="78" stroke="#c0152a" stroke-width="3" stroke-linecap="square"/>
-    <rect x="252" y="260" width="8" height="36" fill="#c0152a"/>
-  </g>
-
-  <!-- Hub -->
-  <circle cx="256" cy="256" r="14" fill="#0c0c0c"/>
-  <circle cx="256" cy="256" r="8" fill="#c0152a"/>
-  <circle cx="256" cy="256" r="4" fill="#e0b83a"/>
+  <!-- Subtle rim border on the squircle so dark docks/backgrounds distinguish the icon shape -->
+  <rect x="17.5" y="17.5" width="477" height="477" rx="110.5" ry="110.5"
+        fill="none" stroke="#f5f2ea" stroke-width="3" stroke-opacity="0.18"/>
 </svg>

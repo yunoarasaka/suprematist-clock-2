@@ -5,43 +5,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Супрематические аналоговые часы" />
   <title>Чёрный квадрат — часы</title>
-  <link rel="stylesheet" href="css/clock.css?v=6" />
+  <link rel="icon" type="image/png" href="icons/suprematist-clock.png" />
+  <link rel="stylesheet" href="css/clock.css?v=8" />
   <script>
-    /* Early class so first paint matches widget chrome (also set from GTK). */
-    if (/(?:^|[?&])widget=1(?:&|$)/.test(location.search)) {
-      document.documentElement.classList.add("widget");
-    }
+    /* Early class & saved preferences so first paint has zero flash. */
+    (function () {
+      var q = location.search || "";
+      if (/(?:^|[?&])widget=1(?:&|$)/.test(q)) {
+        document.documentElement.classList.add("widget");
+      }
+      try {
+        var raw = localStorage.getItem("suprematist_clock_prefs_v1");
+        if (raw) {
+          var p = JSON.parse(raw);
+          if (p.theme && p.theme !== "dark") {
+            document.documentElement.setAttribute("data-theme", p.theme);
+          }
+          if (p.bgMode) {
+            document.documentElement.setAttribute("data-bg", p.bgMode);
+          }
+        }
+      } catch (_) {}
+      if (/(?:^|[?&])transparent=1(?:&|$)/.test(q)) {
+        document.documentElement.setAttribute("data-bg", "transparent");
+      }
+    })();
   </script>
 </head>
 <body>
-  <main class="stage" aria-label="Супрематические часы">
+  <main class="stage" id="stage" aria-label="Супрематические часы">
+    <!-- Inner drag zone (leaves 14px perimeter free for edge/corner resizing) -->
+    <div class="drag-zone" aria-hidden="true"></div>
+
     <!-- Field of planes — Malevich geometry -->
-    <div class="field" aria-hidden="true">
-      <div class="plane plane-white-slab"></div>
-      <div class="plane plane-red-banner"></div>
-      <div class="plane plane-yellow-beam"></div>
-      <div class="plane plane-blue-tower"></div>
-      <div class="plane plane-white-disk"></div>
-      <div class="plane plane-hairline"></div>
-      <div class="plane plane-red-chip"></div>
-      <div class="plane plane-yellow-chip"></div>
+    <div class="field" id="field" aria-hidden="true">
+      <div class="plane plane-white-slab" data-depth="0.35"></div>
+      <div class="plane plane-red-banner" data-depth="-0.45"></div>
+      <div class="plane plane-yellow-beam" data-depth="0.25"></div>
+      <div class="plane plane-blue-tower" data-depth="-0.3"></div>
+      <div class="plane plane-white-disk" data-depth="0.5"></div>
+      <div class="plane plane-hairline" data-depth="-0.2"></div>
+      <div class="plane plane-red-chip" data-depth="0.6"></div>
+      <div class="plane plane-yellow-chip" data-depth="-0.55"></div>
     </div>
 
     <section class="clock-wrap">
       <svg
         class="clock"
+        id="clock-svg"
         viewBox="0 0 480 480"
         role="img"
         aria-labelledby="clock-title"
       >
         <title id="clock-title">Аналоговые часы</title>
 
-        <!-- Asymmetric composition behind / through the face (static décor only) -->
+        <!-- Asymmetric composition behind / through the face -->
         <rect class="comp-yellow" x="340" y="56" width="110" height="22" transform="rotate(8 340 56)" />
         <circle class="comp-white-ring" cx="400" cy="360" r="48" />
 
         <!-- Clock face disk -->
-        <circle class="face" cx="240" cy="240" r="168" />
+        <circle class="face" id="dial-face" cx="240" cy="240" r="168" />
 
         <!-- Black square overlapping the face (Malevich motif) -->
         <rect class="black-square" x="72" y="64" width="118" height="118" />
@@ -62,13 +85,22 @@
           <g id="minute-indicator" class="orbital-group">
             <rect class="ind-minute" x="219" y="51" width="42" height="42" />
           </g>
-          <circle class="hub-outer" cx="240" cy="240" r="14" />
-          <circle class="hub-mid" cx="240" cy="240" r="8" />
-          <circle class="hub-inner" cx="240" cy="240" r="4" />
+          <g id="center-hub" class="hub-group">
+            <circle class="hub-outer" cx="240" cy="240" r="14" />
+            <circle class="hub-mid" cx="240" cy="240" r="8" />
+            <circle class="hub-inner" cx="240" cy="240" r="4" />
+          </g>
         </g>
       </svg>
 
-      <p class="brand" lang="ru">время · плоскость</p>
+      <p
+        class="brand"
+        id="brand-caption"
+        lang="ru"
+        role="button"
+        tabindex="0"
+        title="Клик или клавиша D — переключить подпись / цифровое время"
+      >время · плоскость</p>
     </section>
 
     <!-- Flying second hand: full-viewport layer, pivot = translate point -->
@@ -88,8 +120,26 @@
         </g>
       </svg>
     </div>
+
+    <!-- Minimalist Suprematist quick-controls bar (no-drag in widget mode) -->
+    <nav class="hud" id="hud" aria-label="Настройки супрематистских часов">
+      <button type="button" class="hud-btn" id="btn-theme" title="Палитра (T)">
+        <span class="hud-swatch"></span>
+        <span class="hud-label" id="lbl-theme">чёрный</span>
+      </button>
+      <button type="button" class="hud-btn" id="btn-second" title="Режим секундной стрелки (S)">
+        <span class="hud-dot"></span>
+        <span class="hud-label" id="lbl-second">30с полёт</span>
+      </button>
+      <button type="button" class="hud-btn" id="btn-bg" title="Фон и фигуры (B)">
+        <span class="hud-label" id="lbl-bg">холст</span>
+      </button>
+      <button type="button" class="hud-btn" id="btn-caption" title="Подпись / время (D)">
+        <span class="hud-label" id="lbl-caption">манифест</span>
+      </button>
+    </nav>
   </main>
 
-  <script src="js/clock.js?v=6"></script>
+  <script src="js/clock.js?v=7"></script>
 </body>
 </html>

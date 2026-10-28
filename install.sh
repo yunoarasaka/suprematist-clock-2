@@ -17,7 +17,7 @@ chmod +x "${APP_DIR}/run.sh" "${APP_DIR}/install.sh" "${APP_DIR}/widget.sh" "${A
 
 mkdir -p "${APPS_DIR}"
 mkdir -p "${HICOLOR}/scalable/apps"
-for sz in 48 64 128 256; do
+for sz in 48 64 128 256 512; do
   mkdir -p "${HICOLOR}/${sz}x${sz}/apps"
 done
 
@@ -25,7 +25,7 @@ done
 install -m 644 "${APP_DIR}/icons/${ICON_NAME}.svg" \
   "${HICOLOR}/scalable/apps/${ICON_NAME}.svg"
 
-for sz in 48 64 128 256; do
+for sz in 48 64 128 256 512; do
   src="${APP_DIR}/icons/${ICON_NAME}-${sz}.png"
   if [[ ! -f "$src" ]]; then
     echo "Missing icon: $src (run: python3 icons/render_pngs.py)" >&2
