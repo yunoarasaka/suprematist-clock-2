@@ -44,3 +44,4 @@ token.json
 
 # Electron builder
 .electron-builder*
+__pycache__/
