@@ -272,9 +272,9 @@
       dy = vy;
       n = Math.hypot(dx, dy);
     }
-    if (n < 8) {
-      dx = Math.random() < 0.5 ? 1 : -1;
-      dy = (Math.random() - 0.5) * 0.6;
+    if (n < 0.01) {
+      dx = (Math.random() - 0.5) * 2;
+      dy = (Math.random() - 0.5) * 2;
       n = Math.hypot(dx, dy);
     }
     const boost = 180 * scale;
@@ -373,9 +373,14 @@
       if (!offscreen) {
         const cx = W * 0.5;
         const cy = H * 0.5;
-        const dx = px - cx;
-        const dy = py - cy;
-        const n = Math.hypot(dx, dy) || 1;
+        let dx = px - cx;
+        let dy = py - cy;
+        let n = Math.hypot(dx, dy);
+        if (n < 0.01) {
+          dx = (Math.random() - 0.5) * 2;
+          dy = (Math.random() - 0.5) * 2;
+          n = Math.hypot(dx, dy);
+        }
         vx += (dx / n) * 320 * scale * dt;
         vy += (dy / n) * 320 * scale * dt;
         px += vx * dt;
