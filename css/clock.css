@@ -435,6 +435,7 @@ html[data-caption="hidden"] .brand {
 }
 
 .stage:hover .hud,
+.hud:hover,
 .hud:focus-within,
 .hud.is-pinned {
   opacity: 1;
@@ -520,7 +521,7 @@ html.locked .hud {
 html.widget .drag-zone {
   display: block;
   position: absolute;
-  inset: 14px;
+  inset: 14px 14px 56px 14px;
   z-index: 0;
   -webkit-app-region: drag;
   app-region: drag;
@@ -536,6 +537,10 @@ html.widget .brand,
 html.widget .hud {
   -webkit-app-region: no-drag;
   app-region: no-drag;
+}
+
+html.widget .hud {
+  pointer-events: auto;
 }
 
 html.widget,

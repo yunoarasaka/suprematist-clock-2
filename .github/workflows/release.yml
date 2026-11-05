@@ -16,6 +16,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -71,25 +75,47 @@ jobs:
             dist/*.exe
             dist/*.dmg
             dist/*.zip
-          if-no-files-found: warn
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: suprematist-clock-*-${{ github.sha }}
+          path: dist
+          merge-multiple: true
 
       - name: Resolve tag name
         id: tag
         shell: bash
         run: |
+          TAG=""
+          PUBLISH="false"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.tag }}" ]; then
-            echo "name=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
-            echo "publish=true" >> "$GITHUB_OUTPUT"
+            TAG="${{ github.event.inputs.tag }}"
+            PUBLISH="true"
           elif [ "${{ github.ref_type }}" = "tag" ]; then
-            echo "name=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-            echo "publish=true" >> "$GITHUB_OUTPUT"
+            TAG="${{ github.ref_name }}"
+            PUBLISH="true"
           elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
             VER=$(node -p "require('./package.json').version")
-            echo "name=v${VER}" >> "$GITHUB_OUTPUT"
-            echo "publish=true" >> "$GITHUB_OUTPUT"
+            TAG="v${VER}"
+            PUBLISH="true"
+          fi
+          echo "name=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "publish=${PUBLISH}" >> "$GITHUB_OUTPUT"
+          if [ -n "${TAG}" ] && gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "generate_notes=false" >> "$GITHUB_OUTPUT"
           else
-            echo "name=" >> "$GITHUB_OUTPUT"
-            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "generate_notes=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Publish to GitHub Release
@@ -99,7 +125,7 @@ jobs:
           tag_name: ${{ steps.tag.outputs.name }}
           name: Suprematist Clock 2.0 (${{ steps.tag.outputs.name }})
           draft: false
-          generate_release_notes: true
+          generate_release_notes: ${{ steps.tag.outputs.generate_notes == 'true' }}
           files: |
             dist/*.AppImage
             dist/*.deb

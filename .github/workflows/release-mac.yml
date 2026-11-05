@@ -58,13 +58,23 @@ jobs:
             dist/*.zip
           if-no-files-found: error
 
+      - name: Check existing release
+        id: check_rel
+        shell: bash
+        run: |
+          if gh release view "${{ inputs.tag }}" >/dev/null 2>&1; then
+            echo "generate_notes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "generate_notes=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag }}
           name: Suprematist Clock 2.0 (${{ inputs.tag }})
           draft: false
-          generate_release_notes: true
+          generate_release_notes: ${{ steps.check_rel.outputs.generate_notes == 'true' }}
           files: |
             dist/*.dmg
             dist/*.zip

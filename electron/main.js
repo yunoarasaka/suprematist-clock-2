@@ -268,7 +268,7 @@ function updateTrayMenu() {
 }
 
 function setupTray(iconImage) {
-  if (!iconImage || iconImage.isEmpty()) return;
+  if (tray || !iconImage || iconImage.isEmpty()) return;
   try {
     const trayIcon = iconImage.resize({ width: 22, height: 22 });
     tray = new Tray(trayIcon);
@@ -341,11 +341,25 @@ function createWindow() {
   });
 
   mainWindow.webContents.on("before-input-event", (event, input) => {
-    if (input.type !== "keyDown") return;
-    if (input.key === "Escape" || input.key === "q" || input.key === "Q") {
+    if (input.type !== "keyDown" || input.control || input.alt || input.meta) return;
+    const k = input.key;
+    if (
+      k === "Escape" ||
+      k === "q" ||
+      k === "Q" ||
+      k === "й" ||
+      k === "Й" ||
+      input.code === "KeyQ"
+    ) {
       event.preventDefault();
       app.quit();
-    } else if (input.key === "l" || input.key === "L") {
+    } else if (
+      k === "l" ||
+      k === "L" ||
+      k === "д" ||
+      k === "Д" ||
+      input.code === "KeyL"
+    ) {
       event.preventDefault();
       winState.locked = !winState.locked;
       applyWindowFlags();

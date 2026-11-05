@@ -211,9 +211,15 @@
     const W = window.innerWidth || document.documentElement.clientWidth || 1280;
     const H = window.innerHeight || document.documentElement.clientHeight || 800;
     const minDim = Math.min(W, H);
-    // Scale the second hand proportionally to the clock SVG (78vmin capped at 560px)
-    const dialPx = Math.min(minDim * 0.78, 560);
-    const scale = Math.max(0.36, Math.min(1.18, dialPx / 480));
+    let dialPx =
+      state.captionMode === "hidden"
+        ? Math.min(minDim * 0.84, 600)
+        : Math.min(minDim * 0.78, 560);
+    if (clockSvg) {
+      const rect = clockSvg.getBoundingClientRect();
+      if (rect.width > 0) dialPx = rect.width;
+    }
+    const scale = Math.max(0.36, Math.min(1.25, dialPx / 480));
     const pad = Math.max(28, Math.round(72 * scale));
     const extent = Math.round(220 * scale);
     return { W, H, scale, pad, extent };
@@ -272,10 +278,11 @@
       dy = vy;
       n = Math.hypot(dx, dy);
     }
-    if (n < 0.01) {
-      dx = (Math.random() - 0.5) * 2;
-      dy = (Math.random() - 0.5) * 2;
-      n = Math.hypot(dx, dy);
+    if (n < 8) {
+      const ang = Math.random() * Math.PI * 2;
+      dx = Math.cos(ang);
+      dy = Math.sin(ang);
+      n = 1;
     }
     const boost = 180 * scale;
     vx += (dx / n) * boost;
@@ -324,7 +331,9 @@
 
     if (shouldDrift) {
       if (offscreen || exiting) {
-        if (offscreen) spawnOnScreen(W, H, pad, scale);
+        if (offscreen || px < pad || px > W - pad || py < pad || py > H - pad) {
+          spawnOnScreen(W, H, pad, scale);
+        }
         exiting = false;
         offscreen = false;
       }
@@ -376,10 +385,11 @@
         let dx = px - cx;
         let dy = py - cy;
         let n = Math.hypot(dx, dy);
-        if (n < 0.01) {
-          dx = (Math.random() - 0.5) * 2;
-          dy = (Math.random() - 0.5) * 2;
-          n = Math.hypot(dx, dy);
+        if (n < 1) {
+          const ang = Math.random() * Math.PI * 2;
+          dx = Math.cos(ang);
+          dy = Math.sin(ang);
+          n = 1;
         }
         vx += (dx / n) * 320 * scale * dt;
         vy += (dy / n) * 320 * scale * dt;
@@ -434,9 +444,13 @@
   function setSecondMode(mode) {
     if (!SECOND_MODES.includes(mode)) return;
     state.secondMode = mode;
-    if (mode === "drift" && offscreen) {
+    if (mode === "drift" && (offscreen || exiting)) {
       const { W, H, pad, scale } = viewportMetrics();
-      spawnOnScreen(W, H, pad, scale);
+      if (offscreen || px < pad || px > W - pad || py < pad || py > H - pad) {
+        spawnOnScreen(W, H, pad, scale);
+      } else {
+        exiting = false;
+      }
     }
     savePrefs();
     applyStateToDOM();
@@ -561,8 +575,9 @@
 
   document.addEventListener("keydown", (e) => {
     if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
     const k = e.key;
-    if (k === "f" || k === "F" || k === "F11") {
+    if (k === "f" || k === "F" || k === "а" || k === "А" || k === "F11") {
       e.preventDefault();
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen?.();
@@ -570,14 +585,19 @@
         document.exitFullscreen?.();
       }
     } else if (k === "t" || k === "T" || k === "е" || k === "Е") {
+      e.preventDefault();
       cycleTheme();
     } else if (k === "s" || k === "S" || k === "ы" || k === "Ы") {
+      e.preventDefault();
       cycleSecondMode();
     } else if (k === "b" || k === "B" || k === "и" || k === "И") {
+      e.preventDefault();
       cycleBgMode();
     } else if (k === "d" || k === "D" || k === "в" || k === "В") {
+      e.preventDefault();
       cycleCaptionMode();
     } else if (k === "h" || k === "H" || k === "р" || k === "Р") {
+      e.preventDefault();
       hudEl?.classList.toggle("is-pinned");
     }
   });

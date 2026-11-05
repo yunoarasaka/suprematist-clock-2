@@ -456,6 +456,8 @@ class ClockWindow(Gtk.Window):
                     return True
             if event.y >= alloc.height - 68:
                 return False
+            if abs(event.x - alloc.width * 0.5) < 28 and abs(event.y - alloc.height * 0.5) < 36:
+                return False
             if self._drag_enabled:
                 self.begin_move_drag(
                     int(event.button),
@@ -464,7 +466,7 @@ class ClockWindow(Gtk.Window):
                     int(event.time),
                 )
                 return True
-        if event.button == 2:
+        if event.button == 2 and self._drag_enabled:
             self.begin_move_drag(
                 int(event.button),
                 int(event.x_root),
@@ -475,24 +477,16 @@ class ClockWindow(Gtk.Window):
         return False
 
     def _on_key(self, _widget, event: Gdk.EventKey) -> bool:
+        if event.state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.MOD1_MASK):
+            return False
         key = (Gdk.keyval_name(event.keyval) or "").lower()
-        if key in ("escape", "q"):
+        cp = Gdk.keyval_to_unicode(event.keyval)
+        ch = chr(cp).lower() if cp else ""
+        if key in ("escape", "q", "cyrillic_shorti") or ch in ("q", "й"):
             self.close()
             return True
-        if key == "l":
+        if key in ("l", "cyrillic_de") or ch in ("l", "д"):
             self._toggle_lock()
-            return True
-        if key == "t":
-            self._cycle_pref("theme", ("dark", "light", "red"))
-            return True
-        if key == "s":
-            self._cycle_pref("secondMode", ("flight30", "drift", "orbit"))
-            return True
-        if key == "b":
-            self._cycle_pref("bgMode", ("full", "minimal", "transparent", "transparent-dial"))
-            return True
-        if key == "d":
-            self._cycle_pref("captionMode", ("manifesto", "digital", "hidden"))
             return True
         return False
 
